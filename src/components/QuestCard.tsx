@@ -33,6 +33,11 @@ export function QuestCard({ quest, factionColor, onComplete, onIncrement, onEdit
                 Hebdo
               </span>
             )}
+            {quest.followStreak && (
+              <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded flex items-center gap-1">
+                🔥 {quest.streakCount ?? 0}
+              </span>
+            )}
           </div>
           <p className="text-sm text-gray-400 mb-3">{quest.description}</p>
 

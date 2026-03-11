@@ -1,31 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { GameState, Quest, FactionId } from '../types';
 import { getInitialGameState } from '../utils/initialData';
-import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, isQuestCompleted } from '../utils/gameLogic';
+import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
+import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
 
-const STORAGE_KEY = 'renown-tracker-state';
-
-export function useGameState(showToast: (message: string, type?: ToastType) => void) {
-  const [gameState, setGameState] = useState<GameState>(() => {
-    // Charger depuis localStorage au démarrage
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse saved state:', e);
-        return getInitialGameState();
-      }
-    }
-    return getInitialGameState();
-  });
-
-  // Sauvegarder dans localStorage à chaque changement
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
-  }, [gameState]);
+export function useGameState(
+  gameState: GameState,
+  setGameState: (updater: GameState | ((prev: GameState) => GameState)) => void,
+  showToast: (message: string, type?: ToastType) => void
+) {
 
   // Vérifier et reset les quêtes au chargement
   useEffect(() => {
@@ -36,11 +21,16 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
     if (shouldResetDailies(gameState.lastDailyReset)) {
       updatedState = {
         ...updatedState,
-        quests: updatedState.quests.map(quest => 
-          quest.type === 'daily' 
-            ? { ...quest, completed: false, current: quest.completionType === 'progress' ? 0 : undefined }
-            : quest
-        ),
+        quests: updatedState.quests.map(quest => {
+          if (quest.type !== 'daily') return quest;
+          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+          return {
+            ...quest,
+            completed: false,
+            current: quest.completionType === 'progress' ? 0 : undefined,
+            streakCount: streakBroken ? 0 : quest.streakCount,
+          };
+        }),
         lastDailyReset: new Date().toISOString(),
       };
       needsUpdate = true;
@@ -50,11 +40,16 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
     if (shouldResetWeeklies(gameState.lastWeeklyReset)) {
       updatedState = {
         ...updatedState,
-        quests: updatedState.quests.map(quest => 
-          quest.type === 'weekly'
-            ? { ...quest, completed: false, current: quest.completionType === 'progress' ? 0 : undefined }
-            : quest
-        ),
+        quests: updatedState.quests.map(quest => {
+          if (quest.type !== 'weekly') return quest;
+          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+          return {
+            ...quest,
+            completed: false,
+            current: quest.completionType === 'progress' ? 0 : undefined,
+            streakCount: streakBroken ? 0 : quest.streakCount,
+          };
+        }),
         lastWeeklyReset: new Date().toISOString(),
       };
       needsUpdate = true;
@@ -73,7 +68,9 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
 
       // Marquer la quête comme complétée
       const updatedQuests = prevState.quests.map(q =>
-        q.id === questId ? { ...q, completed: true } : q
+        q.id === questId
+          ? { ...q, completed: true, streakCount: q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount }
+          : q
       );
 
       // Ajouter XP à la faction
@@ -120,8 +117,13 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
 
       // Si la quête vient d'être complétée, ajouter XP et currency
       if (isNowCompleted) {
+        const updatedQuestsWithStreak = updatedQuests.map(q =>
+          q.id === questId && q.followStreak
+            ? { ...q, streakCount: (q.streakCount ?? 0) + 1 }
+            : q
+        );
         const factionIndex = prevState.factions.findIndex(f => f.id === quest.factionId);
-        if (factionIndex === -1) return { ...prevState, quests: updatedQuests };
+        if (factionIndex === -1) return { ...prevState, quests: updatedQuestsWithStreak };
 
         const { faction: updatedFaction, leveledUp } = addXPToFaction(
           prevState.factions[factionIndex],
@@ -137,7 +139,7 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
 
         return {
           ...prevState,
-          quests: updatedQuests,
+          quests: updatedQuestsWithStreak,
           factions: updatedFactions,
           currency: prevState.currency + quest.currencyReward,
         };
@@ -155,6 +157,7 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
       completed: false,
       current: data.completionType === 'progress' ? 0 : undefined,
       target: data.completionType === 'progress' ? data.target : undefined,
+      streakCount: 0,
     };
     setGameState(prev => ({ ...prev, quests: [...prev.quests, newQuest] }));
   };
@@ -184,14 +187,52 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
     }
   };
 
-  // Reset manuel de toutes les données (pour dev/debug)
+  // Ajouter une faction
+  const addFaction = (data: FactionFormData) => {
+    const id = `faction-${Date.now()}`;
+    setGameState(prev => ({
+      ...prev,
+      factions: [...prev.factions, {
+        id,
+        name: data.name,
+        icon: data.icon,
+        color: data.color,
+        renownLevel: 1,
+        currentXP: 0,
+        xpToNextLevel: getXPForNextLevel(1),
+      }],
+    }));
+  };
+
+  // Modifier une faction
+  const editFaction = (factionId: FactionId, data: FactionFormData) => {
+    setGameState(prev => ({
+      ...prev,
+      factions: prev.factions.map(f =>
+        f.id === factionId ? { ...f, ...data } : f
+      ),
+    }));
+  };
+
+  // Supprimer une faction (et ses quêtes)
+  const deleteFaction = (factionId: FactionId) => {
+    if (confirm('Supprimer cette faction et toutes ses quêtes définitivement ?')) {
+      setGameState(prev => ({
+        ...prev,
+        factions: prev.factions.filter(f => f.id !== factionId),
+        quests: prev.quests.filter(q => q.factionId !== factionId),
+      }));
+    }
+  };
+
+  // Reset des données du joueur actif
   const resetAllData = () => {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos données ?')) {
       setGameState(getInitialGameState());
     }
   };
 
-  // Export des données (pour backup)
+  // Export du gameState actif (legacy, remplacé par exportPlayer dans usePlayers)
   const exportData = () => {
     const dataStr = JSON.stringify(gameState, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -203,7 +244,7 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
     URL.revokeObjectURL(url);
   };
 
-  // Import des données (depuis backup)
+  // Import du gameState actif
   const importData = (jsonString: string) => {
     try {
       const data = JSON.parse(jsonString);
@@ -222,6 +263,9 @@ export function useGameState(showToast: (message: string, type?: ToastType) => v
     addQuest,
     editQuest,
     deleteQuest,
+    addFaction,
+    editFaction,
+    deleteFaction,
     resetAllData,
     exportData,
     importData,

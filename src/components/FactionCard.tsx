@@ -1,10 +1,13 @@
+import { Pencil, Trash2 } from 'lucide-react';
 import { Faction } from '../types';
 
 interface FactionCardProps {
   faction: Faction;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export function FactionCard({ faction }: FactionCardProps) {
+export function FactionCard({ faction, onEdit, onDelete }: FactionCardProps) {
   const progressPercentage = (faction.currentXP / faction.xpToNextLevel) * 100;
 
   // Cercle SVG
@@ -14,12 +17,28 @@ export function FactionCard({ faction }: FactionCardProps) {
 
   return (
     <div
-      className="relative flex flex-col items-center gap-3 bg-bg-card rounded-xl p-5 border border-gray-700 hover:border-opacity-80 transition-all hover:-translate-y-1"
+      className="relative flex flex-col items-center gap-3 bg-bg-card rounded-xl p-5 border border-gray-700 hover:border-opacity-80 transition-all hover:-translate-y-1 group"
       style={{
         boxShadow: `0 4px 24px ${faction.color}22`,
         borderColor: `${faction.color}44`,
       }}
     >
+      {/* Boutons edit/delete */}
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={onEdit}
+          className="p-1.5 rounded-md bg-bg-dark hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+        >
+          <Pencil size={13} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded-md bg-bg-dark hover:bg-red-900/40 text-gray-400 hover:text-red-400 transition-colors"
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+
       {/* Anneau de progression circulaire */}
       <div className="relative w-28 h-28">
         <svg

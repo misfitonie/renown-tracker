@@ -1,19 +1,38 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGameState } from './hooks/useGameState';
+import { usePlayers } from './hooks/usePlayers';
 import { useToast } from './hooks/useToast';
 import { Header } from './components/Header';
 import { FactionCard } from './components/FactionCard';
 import { QuestCard } from './components/QuestCard';
 import { QuestFormModal, QuestFormData } from './components/QuestFormModal';
+import { FactionFormModal, FactionFormData } from './components/FactionFormModal';
+import { PlayerSelectScreen } from './components/PlayerSelectScreen';
+import { PlayerFormData } from './components/PlayerFormModal';
 import { ToastContainer } from './components/ToastContainer';
-import { Quest, FactionId } from './types';
-import { Download, Upload, RotateCcw, Plus } from 'lucide-react';
+import { Quest, Faction, FactionId, Player, GameState } from './types';
+import { Download, Upload, RotateCcw, Plus, Settings } from 'lucide-react';
 
-type ModalState =
+type QuestModalState =
   | { mode: 'create'; defaultFactionId: FactionId }
   | { mode: 'edit'; quest: Quest };
 
-function App() {
+type FactionModalState =
+  | { mode: 'create' }
+  | { mode: 'edit'; faction: Faction };
+
+// Composant principal du jeu (remonté à chaque changement de joueur via key)
+function GameApp({
+  player,
+  onUpdateGameState,
+  onSwitchPlayer,
+  onExportPlayer,
+}: {
+  player: Player;
+  onUpdateGameState: (updater: GameState | ((prev: GameState) => GameState)) => void;
+  onSwitchPlayer: () => void;
+  onExportPlayer: () => void;
+}) {
   const { toasts, showToast, removeToast } = useToast();
   const {
     gameState,
@@ -22,12 +41,28 @@ function App() {
     addQuest,
     editQuest,
     deleteQuest,
+    addFaction,
+    editFaction,
+    deleteFaction,
     resetAllData,
     exportData,
     importData,
-  } = useGameState(showToast);
+  } = useGameState(player.gameState, onUpdateGameState, showToast);
 
-  const [modal, setModal] = useState<ModalState | null>(null);
+  const [modal, setModal] = useState<QuestModalState | null>(null);
+  const [factionModal, setFactionModal] = useState<FactionModalState | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleImport = () => {
     const input = document.createElement('input');
@@ -55,6 +90,15 @@ function App() {
     setModal(null);
   };
 
+  const handleFactionSave = (data: FactionFormData) => {
+    if (factionModal?.mode === 'edit') {
+      editFaction(factionModal.faction.id, data);
+    } else {
+      addFaction(data);
+    }
+    setFactionModal(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-bg-dark via-[#1a1430] to-bg-dark">
       {/* Gradient overlay */}
@@ -63,39 +107,66 @@ function App() {
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,_rgba(74,158,255,0.1)_0%,_transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
-        <Header currency={gameState.currency} />
+      {/* Menu déroulant discret en haut à gauche */}
+      <div ref={menuRef} className="fixed top-4 left-4 z-50">
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          className="flex items-center justify-center w-9 h-9 bg-bg-card hover:bg-bg-card/80 text-gray-400 hover:text-white rounded-lg border border-gray-700 transition-colors"
+        >
+          <Settings size={16} />
+        </button>
+        {menuOpen && (
+          <div className="absolute top-11 left-0 bg-bg-card border border-gray-700 rounded-lg shadow-xl overflow-hidden w-44">
+            <button
+              onClick={() => { onExportPlayer(); setMenuOpen(false); }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
+            >
+              <Download size={14} />
+              Exporter le profil
+            </button>
+            <button
+              onClick={() => { handleImport(); setMenuOpen(false); }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
+            >
+              <Upload size={14} />
+              Importer les données
+            </button>
+            <div className="border-t border-gray-700" />
+            <button
+              onClick={() => { resetAllData(); setMenuOpen(false); }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-900/20 transition-colors"
+            >
+              <RotateCcw size={14} />
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
 
-        {/* Actions globales */}
-        <div className="flex flex-wrap gap-2 justify-center mb-8">
-          <button
-            onClick={exportData}
-            className="flex items-center gap-2 bg-bg-card hover:bg-bg-card/80 text-white px-4 py-2 rounded-lg transition-colors border border-gray-700"
-          >
-            <Download size={16} />
-            Exporter
-          </button>
-          <button
-            onClick={handleImport}
-            className="flex items-center gap-2 bg-bg-card hover:bg-bg-card/80 text-white px-4 py-2 rounded-lg transition-colors border border-gray-700"
-          >
-            <Upload size={16} />
-            Importer
-          </button>
-          <button
-            onClick={resetAllData}
-            className="flex items-center gap-2 bg-red-900/20 hover:bg-red-900/30 text-red-400 px-4 py-2 rounded-lg transition-colors border border-red-800"
-          >
-            <RotateCcw size={16} />
-            Reset
-          </button>
-        </div>
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+        <Header
+          currency={gameState.currency}
+          player={player}
+          onSwitchPlayer={onSwitchPlayer}
+        />
 
         {/* Factions */}
         <div className="grid grid-cols-3 gap-6 mb-12">
           {gameState.factions.map((faction) => (
-            <FactionCard key={faction.id} faction={faction} />
+            <FactionCard
+              key={faction.id}
+              faction={faction}
+              onEdit={() => setFactionModal({ mode: 'edit', faction })}
+              onDelete={() => deleteFaction(faction.id)}
+            />
           ))}
+          <button
+            onClick={() => setFactionModal({ mode: 'create' })}
+            className="flex flex-col items-center justify-center gap-2 bg-bg-card/40 rounded-xl p-5 border border-dashed border-gray-700 hover:border-gray-500 text-gray-600 hover:text-gray-400 transition-all hover:-translate-y-1"
+          >
+            <Plus size={24} />
+            <span className="text-sm">Nouvelle faction</span>
+          </button>
         </div>
 
         {/* Quêtes par faction */}
@@ -120,7 +191,6 @@ function App() {
                 </button>
               </div>
 
-              {/* Quêtes journalières */}
               {dailyQuests.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold text-gray-300 mb-3">Quêtes journalières</h3>
@@ -140,7 +210,6 @@ function App() {
                 </div>
               )}
 
-              {/* Quêtes hebdomadaires */}
               {weeklyQuests.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-300 mb-3">Quêtes hebdomadaires</h3>
@@ -160,7 +229,6 @@ function App() {
                 </div>
               )}
 
-              {/* Faction vide */}
               {factionQuests.length === 0 && (
                 <p className="text-gray-600 text-sm italic">Aucune quête pour cette faction.</p>
               )}
@@ -168,13 +236,21 @@ function App() {
           );
         })}
 
-        {/* Footer */}
         <footer className="text-center text-gray-500 text-sm mt-16">
           <p>Renown Tracker - Level Up Your Life 🎮</p>
         </footer>
       </div>
 
-      {/* Modal CRUD */}
+      {/* Modal faction */}
+      {factionModal && (
+        <FactionFormModal
+          initialData={factionModal.mode === 'edit' ? factionModal.faction : undefined}
+          onSave={handleFactionSave}
+          onClose={() => setFactionModal(null)}
+        />
+      )}
+
+      {/* Modal quête */}
       {modal && (
         <QuestFormModal
           initialData={modal.mode === 'edit' ? modal.quest : undefined}
@@ -185,9 +261,67 @@ function App() {
         />
       )}
 
-      {/* Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
+  );
+}
+
+function App() {
+  const {
+    store,
+    activePlayer,
+    updateActiveGameState,
+    createPlayer,
+    editPlayer,
+    deletePlayer,
+    selectPlayer,
+    exportPlayer,
+    importPlayer,
+  } = usePlayers();
+
+  const [showSelectScreen, setShowSelectScreen] = useState(false);
+
+  const handleImportPlayer = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          importPlayer(event.target?.result as string);
+          setShowSelectScreen(false);
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  // Afficher l'écran de sélection si pas de joueur actif ou si demandé
+  if (!activePlayer || showSelectScreen) {
+    return (
+      <PlayerSelectScreen
+        players={store.players}
+        onCreate={(data) => { createPlayer(data); setShowSelectScreen(false); }}
+        onEdit={editPlayer}
+        onDelete={deletePlayer}
+        onSelect={(id) => { selectPlayer(id); setShowSelectScreen(false); }}
+        onExport={exportPlayer}
+        onImport={handleImportPlayer}
+      />
+    );
+  }
+
+  return (
+    <GameApp
+      key={activePlayer.id}
+      player={activePlayer}
+      onUpdateGameState={updateActiveGameState}
+      onSwitchPlayer={() => setShowSelectScreen(true)}
+      onExportPlayer={() => exportPlayer(activePlayer.id)}
+    />
   );
 }
 

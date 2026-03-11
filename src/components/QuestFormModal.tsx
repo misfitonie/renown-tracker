@@ -11,6 +11,7 @@ export interface QuestFormData {
   target: number;
   xpReward: number;
   currencyReward: number;
+  followStreak: boolean;
 }
 
 interface QuestFormModalProps {
@@ -31,6 +32,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
     target: initialData?.target ?? 5,
     xpReward: initialData?.xpReward ?? 50,
     currencyReward: initialData?.currencyReward ?? 10,
+    followStreak: initialData?.followStreak ?? false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -162,6 +164,23 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
                 className={inputClass}
               />
             </div>
+          </div>
+
+          {/* Streak */}
+          <div className="flex items-center justify-between bg-bg-dark border border-gray-700 rounded-lg px-3 py-2">
+            <div>
+              <p className="text-sm text-white">Suivre le streak</p>
+              <p className="text-xs text-gray-500">Compteur de jours/semaines consécutifs</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, followStreak: !f.followStreak }))}
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.followStreak ? 'bg-accent-purple' : 'bg-gray-600'}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.followStreak ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </button>
           </div>
 
           {/* Actions */}

@@ -1,7 +1,7 @@
 // Types de base
 export type QuestType = 'daily' | 'weekly';
 export type CompletionType = 'boolean' | 'progress';
-export type FactionId = 'job' | 'sport' | 'culture';
+export type FactionId = string;
 
 // Une quête individuelle
 export interface Quest {
@@ -18,6 +18,10 @@ export interface Quest {
   completed: boolean;
   current?: number;  // si progress: ex 2
   target?: number;   // si progress: ex 5
+
+  // Streak
+  followStreak?: boolean;
+  streakCount?: number;
 }
 
 // Une faction
@@ -38,4 +42,20 @@ export interface GameState {
   currency: number;
   lastDailyReset: string;   // ISO date string
   lastWeeklyReset: string;  // ISO date string
+}
+
+// Un profil joueur
+export interface Player {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  createdAt: string;
+  gameState: GameState;
+}
+
+// Store global (option A : une seule clé localStorage)
+export interface PlayersStore {
+  activePlayerId: string | null;
+  players: Player[];
 }
