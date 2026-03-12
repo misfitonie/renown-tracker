@@ -5,7 +5,7 @@ import { Faction, Quest } from '../types';
  * Progression linéaire simple (100, 200, 300...)
  */
 export function getXPForNextLevel(currentLevel: number): number {
-  return 100 * currentLevel;
+  return 100 * (currentLevel + 1);
 }
 
 /**
@@ -56,6 +56,24 @@ function getLastMonday(date: Date): Date {
   result.setDate(result.getDate() + diff);
   result.setHours(0, 0, 0, 0);
   return result;
+}
+
+/**
+ * Ajoute de l'XP joueur et gère les level-ups du joueur
+ * Chaque level-up de faction récompense renownLevel × 50 XP joueur
+ */
+export function addPlayerXP(
+  currentXP: number,
+  currentLevel: number,
+  amount: number
+): { playerXP: number; playerLevel: number } {
+  let xp = currentXP + amount;
+  let level = currentLevel;
+  while (xp >= getXPForNextLevel(level)) {
+    xp -= getXPForNextLevel(level);
+    level++;
+  }
+  return { playerXP: xp, playerLevel: level };
 }
 
 /**

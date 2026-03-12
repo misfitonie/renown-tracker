@@ -11,7 +11,7 @@ export const THEMES: Theme[] = [
     id: 'ardoise',
     label: 'Ardoise',
     bg: '#18181A',
-    cardBg: '#393b41',
+    cardBg: '#323336',
     outline: '#2d2e33',
   },
   {

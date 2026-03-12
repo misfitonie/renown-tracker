@@ -1,28 +1,42 @@
+import { useState, useEffect } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Faction } from '../types';
 
 interface FactionCardProps {
   faction: Faction;
   selected: boolean;
+  levelUpTrigger?: number;
   onClick: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export function FactionCard({ faction, selected, onClick, onEdit, onDelete }: FactionCardProps) {
+export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, onEdit, onDelete }: FactionCardProps) {
   const progressPercentage = (faction.currentXP / faction.xpToNextLevel) * 100;
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (progressPercentage / 100) * circumference;
 
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (levelUpTrigger === 0) return;
+    setAnimating(true);
+    const t = setTimeout(() => setAnimating(false), 850);
+    return () => clearTimeout(t);
+  }, [levelUpTrigger]);
+
   return (
     <div
-      className="relative flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group"
+      className={`relative flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group ${
+        animating ? 'animate-factionLevelUp' : ''
+      }`}
       style={{
+        '--fluc': `${faction.color}bb`,
         backgroundColor: selected ? `${faction.color}18` : 'var(--theme-card-bg)',
         borderColor: selected ? `${faction.color}88` : 'var(--theme-outline)',
         boxShadow: selected ? `0 0 12px ${faction.color}22` : 'none',
-      }}
+      } as React.CSSProperties}
       onClick={onClick}
     >
       {/* Anneau compact */}

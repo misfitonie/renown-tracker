@@ -35,6 +35,12 @@ function GameApp({
   onExportPlayer: () => void;
 }) {
   const { toasts, showToast, removeToast } = useToast();
+
+  const [levelUpTriggers, setLevelUpTriggers] = useState<Record<string, number>>({});
+  const handleFactionLevelUp = (factionId: string) => {
+    setLevelUpTriggers(prev => ({ ...prev, [factionId]: (prev[factionId] ?? 0) + 1 }));
+  };
+
   const {
     gameState,
     completeQuest,
@@ -48,7 +54,7 @@ function GameApp({
     deleteFaction,
     resetAllData,
     importData,
-  } = useGameState(player.gameState, onUpdateGameState, showToast);
+  } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp);
 
   const { themeId, setThemeId } = useTheme();
 
@@ -184,6 +190,8 @@ function GameApp({
         <Header
           currency={gameState.currency}
           player={player}
+          playerXP={gameState.playerXP}
+          playerLevel={gameState.playerLevel}
           onSwitchPlayer={onSwitchPlayer}
         />
 
@@ -195,6 +203,7 @@ function GameApp({
                 key={faction.id}
                 faction={faction}
                 selected={selectedFaction?.id === faction.id}
+                levelUpTrigger={levelUpTriggers[faction.id] ?? 0}
                 onClick={() => setSelectedFactionId(faction.id)}
                 onEdit={() => setFactionModal({ mode: 'edit', faction })}
                 onDelete={() => deleteFaction(faction.id)}
@@ -285,9 +294,6 @@ function GameApp({
           </div>
         </div>
 
-        <footer className="text-center text-gray-500 text-sm mt-16">
-          <p>Renown Tracker - Level Up Your Life 🎮</p>
-        </footer>
       </div>
 
       {/* Modal faction */}

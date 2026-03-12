@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { GameState, Quest, FactionId } from '../types';
 import { getInitialGameState } from '../utils/initialData';
-import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
+import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, addPlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
@@ -9,7 +9,8 @@ import { ToastType } from './useToast';
 export function useGameState(
   gameState: GameState,
   setGameState: (updater: GameState | ((prev: GameState) => GameState)) => void,
-  showToast: (message: string, type?: ToastType) => void
+  showToast: (message: string, type?: ToastType) => void,
+  onFactionLevelUp?: (factionId: string) => void
 ) {
 
   // Vérifier et reset les quêtes au chargement
@@ -82,15 +83,21 @@ export function useGameState(
     const updatedFactions = [...gameState.factions];
     updatedFactions[factionIndex] = updatedFaction;
 
+    const playerUpdate = leveledUp
+      ? addPlayerXP(gameState.playerXP, gameState.playerLevel, updatedFaction.renownLevel * 50)
+      : { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
+
     setGameState({
       ...gameState,
       quests: updatedQuests,
       factions: updatedFactions,
       currency: gameState.currency + quest.currencyReward,
+      ...playerUpdate,
     });
 
     if (leveledUp) {
       showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success');
+      onFactionLevelUp?.(quest.factionId);
     }
   };
 
@@ -125,15 +132,21 @@ export function useGameState(
       const updatedFactions = [...gameState.factions];
       updatedFactions[factionIndex] = updatedFaction;
 
+      const playerUpdate = leveledUp
+        ? addPlayerXP(gameState.playerXP, gameState.playerLevel, updatedFaction.renownLevel * 50)
+        : { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
+
       setGameState({
         ...gameState,
         quests: updatedQuests,
         factions: updatedFactions,
         currency: gameState.currency + quest.currencyReward,
+        ...playerUpdate,
       });
 
       if (leveledUp) {
         showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success');
+        onFactionLevelUp?.(quest.factionId);
       }
     } else {
       setGameState({ ...gameState, quests: updatedQuests });
@@ -222,9 +235,9 @@ export function useGameState(
         name: data.name,
         icon: data.icon,
         color: data.color,
-        renownLevel: 1,
+        renownLevel: 0,
         currentXP: 0,
-        xpToNextLevel: getXPForNextLevel(1),
+        xpToNextLevel: getXPForNextLevel(0),
       }],
     }));
   };

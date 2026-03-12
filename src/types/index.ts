@@ -40,6 +40,8 @@ export interface GameState {
   factions: Faction[];
   quests: Quest[];
   currency: number;
+  playerXP: number;
+  playerLevel: number;
   lastDailyReset: string;   // ISO date string
   lastWeeklyReset: string;  // ISO date string
 }
