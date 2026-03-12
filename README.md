@@ -125,7 +125,7 @@ Les streaks auraient pu nécessiter un champ `lastCompletedAt: string` pour dét
 
 Le reset se déclenche au chargement de l'app si le jour/la semaine a changé depuis le dernier reset. Ça couvre le cas "j'ouvre l'app le matin, les quêtes se resetent, les streaks brisés sont détectés".
 
-### Format de stockage (Option A : clé unique)
+### Format de stockage : clé unique
 
 Deux options avaient été envisagées :
 
