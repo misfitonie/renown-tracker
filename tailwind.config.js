@@ -16,8 +16,8 @@ export default {
         slideIn: 'slideIn 0.2s ease-out',
       },
       colors: {
-        'bg-dark': '#0a0e1a',
-        'bg-card': '#1a1f35',
+        'bg-dark': 'rgb(var(--color-bg-dark) / <alpha-value>)',
+        'bg-card': 'rgb(var(--color-bg-card) / <alpha-value>)',
         'accent-gold': '#d4af37',
         'accent-blue': '#4a9eff',
         'accent-purple': '#9d4edd',

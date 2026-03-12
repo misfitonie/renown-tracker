@@ -8,10 +8,11 @@ import { QuestCard } from './components/QuestCard';
 import { QuestFormModal, QuestFormData } from './components/QuestFormModal';
 import { FactionFormModal, FactionFormData } from './components/FactionFormModal';
 import { PlayerSelectScreen } from './components/PlayerSelectScreen';
-import { PlayerFormData } from './components/PlayerFormModal';
 import { ToastContainer } from './components/ToastContainer';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { Download, Upload, RotateCcw, Plus, Settings } from 'lucide-react';
+import { useTheme } from './hooks/useTheme';
+import { THEMES } from './utils/themes';
 
 type QuestModalState =
   | { mode: 'create'; defaultFactionId: FactionId }
@@ -38,6 +39,7 @@ function GameApp({
     gameState,
     completeQuest,
     incrementQuestProgress,
+    uncompleteQuest,
     addQuest,
     editQuest,
     deleteQuest,
@@ -45,12 +47,14 @@ function GameApp({
     editFaction,
     deleteFaction,
     resetAllData,
-    exportData,
     importData,
   } = useGameState(player.gameState, onUpdateGameState, showToast);
 
+  const { themeId, setThemeId } = useTheme();
+
   const [modal, setModal] = useState<QuestModalState | null>(null);
   const [factionModal, setFactionModal] = useState<FactionModalState | null>(null);
+  const [selectedFactionId, setSelectedFactionId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -99,8 +103,23 @@ function GameApp({
     setFactionModal(null);
   };
 
+  // Faction sélectionnée : celle cliquée, ou la première par défaut
+  const selectedFaction =
+    gameState.factions.find(f => f.id === selectedFactionId) ??
+    gameState.factions[0] ??
+    null;
+
+  const factionQuests = selectedFaction
+    ? gameState.quests.filter(q => q.factionId === selectedFaction.id)
+    : [];
+  const dailyQuests = factionQuests.filter(q => q.type === 'daily');
+  const weeklyQuests = factionQuests.filter(q => q.type === 'weekly');
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg-dark via-[#1a1430] to-bg-dark">
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: 'var(--theme-bg)' }}
+    >
       {/* Gradient overlay */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,_rgba(157,78,221,0.1)_0%,_transparent_50%)]" />
@@ -122,15 +141,33 @@ function GameApp({
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
             >
               <Download size={14} />
-              Exporter le profil
+              Export
             </button>
             <button
               onClick={() => { handleImport(); setMenuOpen(false); }}
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
             >
               <Upload size={14} />
-              Importer les données
+              Import
             </button>
+            <div className="border-t border-gray-700" />
+            <div className="px-4 py-2.5">
+              <p className="text-xs text-gray-500 mb-2">Thème</p>
+              <div className="flex gap-2">
+                {THEMES.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setThemeId(t.id)}
+                    title={t.label}
+                    className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
+                    style={{
+                      backgroundColor: t.cardBg,
+                      borderColor: themeId === t.id ? 'white' : 'transparent',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
             <div className="border-t border-gray-700" />
             <button
               onClick={() => { resetAllData(); setMenuOpen(false); }}
@@ -150,91 +187,103 @@ function GameApp({
           onSwitchPlayer={onSwitchPlayer}
         />
 
-        {/* Factions */}
-        <div className="grid grid-cols-3 gap-6 mb-12">
-          {gameState.factions.map((faction) => (
-            <FactionCard
-              key={faction.id}
-              faction={faction}
-              onEdit={() => setFactionModal({ mode: 'edit', faction })}
-              onDelete={() => deleteFaction(faction.id)}
-            />
-          ))}
-          <button
-            onClick={() => setFactionModal({ mode: 'create' })}
-            className="flex flex-col items-center justify-center gap-2 bg-bg-card/40 rounded-xl p-5 border border-dashed border-gray-700 hover:border-gray-500 text-gray-600 hover:text-gray-400 transition-all hover:-translate-y-1"
-          >
-            <Plus size={24} />
-            <span className="text-sm">Nouvelle faction</span>
-          </button>
-        </div>
+        <div className="flex gap-14 items-start">
+          {/* Colonne gauche — Factions (1/3) */}
+          <div className="w-1/3 flex-shrink-0 space-y-3">
+            {gameState.factions.map((faction) => (
+              <FactionCard
+                key={faction.id}
+                faction={faction}
+                selected={selectedFaction?.id === faction.id}
+                onClick={() => setSelectedFactionId(faction.id)}
+                onEdit={() => setFactionModal({ mode: 'edit', faction })}
+                onDelete={() => deleteFaction(faction.id)}
+              />
+            ))}
+            <button
+              onClick={() => setFactionModal({ mode: 'create' })}
+              className="flex items-center justify-center gap-2 w-full p-3 rounded-xl border border-dashed border-gray-700 hover:border-gray-500 text-gray-600 hover:text-gray-400 transition-all text-sm"
+            >
+              <Plus size={16} />
+              Nouvelle faction
+            </button>
+          </div>
 
-        {/* Quêtes par faction */}
-        {gameState.factions.map((faction) => {
-          const factionQuests = gameState.quests.filter(q => q.factionId === faction.id);
-          const dailyQuests = factionQuests.filter(q => q.type === 'daily');
-          const weeklyQuests = factionQuests.filter(q => q.type === 'weekly');
-
-          return (
-            <div key={faction.id} className="mb-12">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{faction.icon}</span>
-                  <h2 className="text-2xl font-title text-accent-gold">{faction.name}</h2>
+          {/* Colonne droite — Quêtes (2/3) */}
+          <div className="flex-1 min-w-0">
+            {selectedFaction ? (
+              <>
+                {/* En-tête faction */}
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl">{selectedFaction.icon}</span>
+                    <div>
+                      <h2 className="text-2xl font-title text-white">{selectedFaction.name}</h2>
+                      <p className="text-sm" style={{ color: selectedFaction.color }}>
+                        Niveau {selectedFaction.renownLevel} · {selectedFaction.currentXP} / {selectedFaction.xpToNextLevel} XP
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setModal({ mode: 'create', defaultFactionId: selectedFaction.id })}
+                    className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
+                  >
+                    <Plus size={15} />
+                    Ajouter une quête
+                  </button>
                 </div>
-                <button
-                  onClick={() => setModal({ mode: 'create', defaultFactionId: faction.id })}
-                  className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
-                >
-                  <Plus size={15} />
-                  Ajouter une quête
-                </button>
+
+                {factionQuests.length === 0 && (
+                  <p className="text-gray-600 text-sm italic">Aucune quête pour cette faction.</p>
+                )}
+
+                {dailyQuests.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Journalières</h3>
+                    <div className="space-y-3">
+                      {dailyQuests.map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          factionColor={selectedFaction.color}
+                          onComplete={() => completeQuest(quest.id)}
+                          onUncomplete={() => uncompleteQuest(quest.id)}
+                          onIncrement={() => incrementQuestProgress(quest.id)}
+                          onEdit={() => setModal({ mode: 'edit', quest })}
+                          onDelete={() => deleteQuest(quest.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {weeklyQuests.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Hebdomadaires</h3>
+                    <div className="space-y-6">
+                      {weeklyQuests.map((quest) => (
+                        <QuestCard
+                          key={quest.id}
+                          quest={quest}
+                          factionColor={selectedFaction.color}
+                          onComplete={() => completeQuest(quest.id)}
+                          onUncomplete={() => uncompleteQuest(quest.id)}
+                          onIncrement={() => incrementQuestProgress(quest.id)}
+                          onEdit={() => setModal({ mode: 'edit', quest })}
+                          onDelete={() => deleteQuest(quest.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-48 text-gray-600">
+                <p className="text-sm italic">Créez votre première faction pour commencer.</p>
               </div>
-
-              {dailyQuests.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-300 mb-3">Quêtes journalières</h3>
-                  <div className="space-y-3">
-                    {dailyQuests.map((quest) => (
-                      <QuestCard
-                        key={quest.id}
-                        quest={quest}
-                        factionColor={faction.color}
-                        onComplete={() => completeQuest(quest.id)}
-                        onIncrement={() => incrementQuestProgress(quest.id)}
-                        onEdit={() => setModal({ mode: 'edit', quest })}
-                        onDelete={() => deleteQuest(quest.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {weeklyQuests.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-300 mb-3">Quêtes hebdomadaires</h3>
-                  <div className="space-y-3">
-                    {weeklyQuests.map((quest) => (
-                      <QuestCard
-                        key={quest.id}
-                        quest={quest}
-                        factionColor={faction.color}
-                        onComplete={() => completeQuest(quest.id)}
-                        onIncrement={() => incrementQuestProgress(quest.id)}
-                        onEdit={() => setModal({ mode: 'edit', quest })}
-                        onDelete={() => deleteQuest(quest.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {factionQuests.length === 0 && (
-                <p className="text-gray-600 text-sm italic">Aucune quête pour cette faction.</p>
-              )}
-            </div>
-          );
-        })}
+            )}
+          </div>
+        </div>
 
         <footer className="text-center text-gray-500 text-sm mt-16">
           <p>Renown Tracker - Level Up Your Life 🎮</p>

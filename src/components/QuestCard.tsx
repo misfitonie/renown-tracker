@@ -6,12 +6,13 @@ interface QuestCardProps {
   quest: Quest;
   factionColor: string;
   onComplete: () => void;
+  onUncomplete: () => void;
   onIncrement?: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export function QuestCard({ quest, factionColor, onComplete, onIncrement, onEdit, onDelete }: QuestCardProps) {
+export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onIncrement, onEdit, onDelete }: QuestCardProps) {
   const completed = isQuestCompleted(quest);
   const progressPercentage = quest.completionType === 'progress' && quest.target
     ? ((quest.current || 0) / quest.target) * 100
@@ -89,9 +90,13 @@ export function QuestCard({ quest, factionColor, onComplete, onIncrement, onEdit
 
           {/* Bouton de complétion */}
           {completed ? (
-            <div className="bg-green-600/20 text-green-400 p-2 rounded-lg">
+            <button
+              onClick={onUncomplete}
+              className="bg-green-600/20 hover:bg-red-900/30 text-green-400 hover:text-red-400 p-2 rounded-lg transition-colors"
+              title="Annuler la validation"
+            >
               <Check size={20} />
-            </div>
+            </button>
           ) : quest.completionType === 'progress' ? (
             <button
               onClick={onIncrement}

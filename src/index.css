@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --theme-bg: #18181A;
+  --theme-card-bg: #1E1F23;
+  --theme-outline: #2d2e33;
+  --color-bg-dark: 24 24 26;
+  --color-bg-card: 30 31 35;
+}
+
 body {
   margin: 0;
   font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

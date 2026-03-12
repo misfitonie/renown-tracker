@@ -62,90 +62,115 @@ export function useGameState(
 
   // Compléter une quête
   const completeQuest = (questId: string) => {
-    setGameState(prevState => {
-      const quest = prevState.quests.find(q => q.id === questId);
-      if (!quest || isQuestCompleted(quest)) return prevState;
+    const quest = gameState.quests.find(q => q.id === questId);
+    if (!quest || isQuestCompleted(quest)) return;
 
-      // Marquer la quête comme complétée
-      const updatedQuests = prevState.quests.map(q =>
-        q.id === questId
-          ? { ...q, completed: true, streakCount: q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount }
-          : q
-      );
+    const updatedQuests = gameState.quests.map(q =>
+      q.id === questId
+        ? { ...q, completed: true, streakCount: q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount }
+        : q
+    );
 
-      // Ajouter XP à la faction
-      const factionIndex = prevState.factions.findIndex(f => f.id === quest.factionId);
-      if (factionIndex === -1) return prevState;
+    const factionIndex = gameState.factions.findIndex(f => f.id === quest.factionId);
+    if (factionIndex === -1) return;
 
-      const { faction: updatedFaction, leveledUp } = addXPToFaction(
-        prevState.factions[factionIndex],
-        quest.xpReward
-      );
+    const { faction: updatedFaction, leveledUp } = addXPToFaction(
+      gameState.factions[factionIndex],
+      quest.xpReward
+    );
 
-      const updatedFactions = [...prevState.factions];
-      updatedFactions[factionIndex] = updatedFaction;
+    const updatedFactions = [...gameState.factions];
+    updatedFactions[factionIndex] = updatedFaction;
 
-      if (leveledUp) {
-        setTimeout(() => showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success'), 100);
-      }
-
-      return {
-        ...prevState,
-        quests: updatedQuests,
-        factions: updatedFactions,
-        currency: prevState.currency + quest.currencyReward,
-      };
+    setGameState({
+      ...gameState,
+      quests: updatedQuests,
+      factions: updatedFactions,
+      currency: gameState.currency + quest.currencyReward,
     });
+
+    if (leveledUp) {
+      showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success');
+    }
   };
 
   // Incrémenter la progression d'une quête
   const incrementQuestProgress = (questId: string) => {
-    setGameState(prevState => {
-      const quest = prevState.quests.find(q => q.id === questId);
-      if (!quest || quest.completionType !== 'progress' || isQuestCompleted(quest)) {
-        return prevState;
-      }
+    const quest = gameState.quests.find(q => q.id === questId);
+    if (!quest || quest.completionType !== 'progress' || isQuestCompleted(quest)) return;
 
-      const newCurrent = (quest.current || 0) + 1;
-      const isNowCompleted = quest.target !== undefined && newCurrent >= quest.target;
+    const newCurrent = (quest.current || 0) + 1;
+    const isNowCompleted = quest.target !== undefined && newCurrent >= quest.target;
 
-      const updatedQuests = prevState.quests.map(q =>
-        q.id === questId 
-          ? { ...q, current: newCurrent, completed: isNowCompleted }
-          : q
+    const updatedQuests = gameState.quests.map(q =>
+      q.id === questId
+        ? {
+            ...q,
+            current: newCurrent,
+            completed: isNowCompleted,
+            streakCount: isNowCompleted && q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount,
+          }
+        : q
+    );
+
+    if (isNowCompleted) {
+      const factionIndex = gameState.factions.findIndex(f => f.id === quest.factionId);
+      if (factionIndex === -1) { setGameState({ ...gameState, quests: updatedQuests }); return; }
+
+      const { faction: updatedFaction, leveledUp } = addXPToFaction(
+        gameState.factions[factionIndex],
+        quest.xpReward
       );
 
-      // Si la quête vient d'être complétée, ajouter XP et currency
-      if (isNowCompleted) {
-        const updatedQuestsWithStreak = updatedQuests.map(q =>
-          q.id === questId && q.followStreak
-            ? { ...q, streakCount: (q.streakCount ?? 0) + 1 }
-            : q
-        );
-        const factionIndex = prevState.factions.findIndex(f => f.id === quest.factionId);
-        if (factionIndex === -1) return { ...prevState, quests: updatedQuestsWithStreak };
+      const updatedFactions = [...gameState.factions];
+      updatedFactions[factionIndex] = updatedFaction;
 
-        const { faction: updatedFaction, leveledUp } = addXPToFaction(
-          prevState.factions[factionIndex],
-          quest.xpReward
-        );
+      setGameState({
+        ...gameState,
+        quests: updatedQuests,
+        factions: updatedFactions,
+        currency: gameState.currency + quest.currencyReward,
+      });
 
-        const updatedFactions = [...prevState.factions];
-        updatedFactions[factionIndex] = updatedFaction;
-
-        if (leveledUp) {
-          setTimeout(() => showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success'), 100);
-        }
-
-        return {
-          ...prevState,
-          quests: updatedQuestsWithStreak,
-          factions: updatedFactions,
-          currency: prevState.currency + quest.currencyReward,
-        };
+      if (leveledUp) {
+        showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success');
       }
+    } else {
+      setGameState({ ...gameState, quests: updatedQuests });
+    }
+  };
 
-      return { ...prevState, quests: updatedQuests };
+  // Décocher une quête (annule XP et currency)
+  const uncompleteQuest = (questId: string) => {
+    const quest = gameState.quests.find(q => q.id === questId);
+    if (!quest || !isQuestCompleted(quest)) return;
+
+    const updatedQuests = gameState.quests.map(q =>
+      q.id === questId
+        ? {
+            ...q,
+            completed: false,
+            current: q.completionType === 'progress' ? 0 : undefined,
+            streakCount: q.followStreak ? Math.max(0, (q.streakCount ?? 1) - 1) : q.streakCount,
+          }
+        : q
+    );
+
+    const factionIndex = gameState.factions.findIndex(f => f.id === quest.factionId);
+    const updatedFactions = [...gameState.factions];
+    if (factionIndex !== -1) {
+      const f = updatedFactions[factionIndex];
+      updatedFactions[factionIndex] = {
+        ...f,
+        currentXP: Math.max(0, f.currentXP - quest.xpReward),
+      };
+    }
+
+    setGameState({
+      ...gameState,
+      quests: updatedQuests,
+      factions: updatedFactions,
+      currency: Math.max(0, gameState.currency - quest.currencyReward),
     });
   };
 
@@ -259,6 +284,7 @@ export function useGameState(
   return {
     gameState,
     completeQuest,
+    uncompleteQuest,
     incrementQuestProgress,
     addQuest,
     editQuest,
