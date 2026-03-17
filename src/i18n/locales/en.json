@@ -14,9 +14,6 @@
       "import": "Import",
       "theme": "Theme",
       "language": "Language",
-      "debug": "⚠ Debug",
-      "debugDaily": "Reset D",
-      "debugWeekly": "Reset W",
       "reset": "Reset"
     },
     "confirm": {
@@ -85,8 +82,6 @@
     "factionLevelUp": "🎉 {{name}} level {{level}}!",
     "weeklyCompleted": "✅ Weekly quest \"{{title}}\" completed!",
     "importSuccess": "Data imported successfully!",
-    "importError": "Error importing data",
-    "debugResetDaily": "[DEBUG] Daily reset done",
-    "debugResetWeekly": "[DEBUG] Weekly reset done"
+    "importError": "Error importing data"
   }
 }

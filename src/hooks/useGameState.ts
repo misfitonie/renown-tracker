@@ -318,44 +318,6 @@ export function useGameState(
     }
   };
 
-  // [DEBUG] Forcer le reset des quêtes journalières
-  const debugResetDailies = () => {
-    setGameState({
-      ...gameState,
-      quests: gameState.quests.map(quest => {
-        if (quest.type !== 'daily') return quest;
-        const streakBroken = quest.followStreak && !isQuestCompleted(quest);
-        return {
-          ...quest,
-          completed: false,
-          current: quest.completionType === 'progress' ? 0 : undefined,
-          streakCount: streakBroken ? 0 : quest.streakCount,
-        };
-      }),
-      lastDailyReset: new Date().toISOString(),
-    });
-    showToast(i18n.t('toast.debugResetDaily'), 'success');
-  };
-
-  // [DEBUG] Forcer le reset des quêtes hebdomadaires
-  const debugResetWeeklies = () => {
-    setGameState({
-      ...gameState,
-      quests: gameState.quests.map(quest => {
-        if (quest.type !== 'weekly') return quest;
-        const streakBroken = quest.followStreak && !isQuestCompleted(quest);
-        return {
-          ...quest,
-          completed: false,
-          current: quest.completionType === 'progress' ? 0 : undefined,
-          streakCount: streakBroken ? 0 : quest.streakCount,
-        };
-      }),
-      lastWeeklyReset: new Date().toISOString(),
-    });
-    showToast(i18n.t('toast.debugResetWeekly'), 'success');
-  };
-
   // Reset des données du joueur actif
   const resetAllData = () => {
     if (confirm(i18n.t('app.confirm.reset'))) {
@@ -401,7 +363,5 @@ export function useGameState(
     resetAllData,
     exportData,
     importData,
-    debugResetDailies,
-    debugResetWeeklies,
   };
 }

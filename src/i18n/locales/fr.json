@@ -14,9 +14,6 @@
       "import": "Import",
       "theme": "Thème",
       "language": "Langue",
-      "debug": "⚠ Debug",
-      "debugDaily": "Reset J",
-      "debugWeekly": "Reset H",
       "reset": "Reset"
     },
     "confirm": {
@@ -85,8 +82,6 @@
     "factionLevelUp": "🎉 {{name}} niveau {{level}} !",
     "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",
     "importSuccess": "Données importées avec succès !",
-    "importError": "Erreur lors de l'import des données",
-    "debugResetDaily": "[DEBUG] Reset journalier effectué",
-    "debugResetWeekly": "[DEBUG] Reset hebdomadaire effectué"
+    "importError": "Erreur lors de l'import des données"
   }
 }
