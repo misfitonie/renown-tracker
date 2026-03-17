@@ -340,6 +340,18 @@ function GameApp({
       )}
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Footer */}
+      <footer className="text-center py-4 mt-2">
+        <a
+          href="https://github.com/misfitonie"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-gray-700 hover:text-gray-500 transition-colors"
+        >
+          github.com/misfitonie
+        </a>
+      </footer>
     </div>
   );
 }
