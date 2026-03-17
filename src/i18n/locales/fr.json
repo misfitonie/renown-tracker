@@ -78,6 +78,10 @@
       "noLink": "Aucune"
     }
   },
+  "mobile": {
+    "title": "Version bureau uniquement",
+    "message": "Renown Tracker n'est pas encore disponible sur mobile ou tablette. Ouvre le site depuis un ordinateur pour profiter de l'expérience complète."
+  },
   "toast": {
     "factionLevelUp": "🎉 {{name}} niveau {{level}} !",
     "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",

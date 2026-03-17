@@ -344,6 +344,29 @@ function GameApp({
   );
 }
 
+function MobileGuard({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  if (!isMobile) return <>{children}</>;
+
+  return (
+    <div className="min-h-screen bg-bg-dark flex items-center justify-center p-6">
+      <div className="bg-bg-card border border-gray-700 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+        <div className="text-5xl mb-4">🖥️</div>
+        <h1 className="font-title text-2xl text-accent-gold mb-3">{t('mobile.title')}</h1>
+        <p className="text-gray-400 text-sm leading-relaxed">{t('mobile.message')}</p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const {
     store,
@@ -393,13 +416,15 @@ function App() {
   }
 
   return (
-    <GameApp
-      key={activePlayer.id}
-      player={activePlayer}
-      onUpdateGameState={updateActiveGameState}
-      onSwitchPlayer={() => setShowSelectScreen(true)}
-      onExportPlayer={() => exportPlayer(activePlayer.id)}
-    />
+    <MobileGuard>
+      <GameApp
+        key={activePlayer.id}
+        player={activePlayer}
+        onUpdateGameState={updateActiveGameState}
+        onSwitchPlayer={() => setShowSelectScreen(true)}
+        onExportPlayer={() => exportPlayer(activePlayer.id)}
+      />
+    </MobileGuard>
   );
 }
 
