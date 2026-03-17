@@ -22,6 +22,9 @@ export interface Quest {
   // Streak
   followStreak?: boolean;
   streakCount?: number;
+
+  // Lien quête journalière → quête hebdo (progress)
+  linkedWeeklyQuestId?: string;
 }
 
 // Une faction

@@ -6,7 +6,7 @@
 
 ## Concept
 
-L'idée est simple : transformer des habitudes du quotidien en système de quêtes RPG. Chaque domaine de vie devient une **faction** (travail, sport, culture, etc.), chaque habitude devient une **quête** avec une récompense en XP et en gemmes. Compléter ses quêtes fait monter le niveau de renommée de chaque faction.
+L'idée est simple : transformer des habitudes du quotidien en système de quêtes RPG. Chaque domaine de vie devient une **faction** (travail, sport, culture, etc.), chaque habitude devient une **quête** avec une récompense en XP et en gemmes. Compléter ses quêtes fait monter le niveau de renommée de chaque faction, ce qui contribue à la progression globale du joueur.
 
 L'inspiration vient du système de renommées de World of Warcraft — progresser dans plusieurs factions en parallèle, chacune avec sa propre courbe de progression.
 
@@ -18,9 +18,8 @@ L'inspiration vient du système de renommées de World of Warcraft — progresse
 - **Vite** — build tool rapide, HMR natif
 - **Tailwind CSS** — utility-first, pas de composants UI tiers
 - **Lucide React** — icônes légères tree-shakeable
+- **i18next + react-i18next** — internationalisation FR/EN
 - **localStorage** — persistance locale, pas de backend
-
-Zéro dépendance externe pour la logique métier. Tout est en vanilla React/TS.
 
 ---
 
@@ -44,23 +43,30 @@ npm run build
 ```
 src/
 ├── components/
-│   ├── FactionCard.tsx        # Carte faction avec anneau SVG de progression
-│   ├── QuestCard.tsx          # Carte quête avec badge streak
-│   ├── QuestFormModal.tsx     # CRUD quêtes
+│   ├── FactionCard.tsx        # Carte faction avec anneau SVG de progression + animation level-up
+│   ├── QuestCard.tsx          # Carte quête avec badge streak, lien hebdo
+│   ├── QuestFormModal.tsx     # CRUD quêtes (avec lien journalière → hebdo)
 │   ├── FactionFormModal.tsx   # CRUD factions
 │   ├── PlayerFormModal.tsx    # CRUD profils joueurs
 │   ├── PlayerSelectScreen.tsx # Écran de sélection de personnage
-│   ├── Header.tsx             # Header avec joueur actif + gemmes
+│   ├── Header.tsx             # Card joueur : niveau, barre XP, gemmes
 │   └── ToastContainer.tsx     # Notifications
 ├── hooks/
 │   ├── usePlayers.ts          # Store multi-joueurs (localStorage)
 │   ├── useGameState.ts        # Logique de jeu (découplée du stockage)
+│   ├── useTheme.ts            # Gestion des thèmes visuels
 │   └── useToast.ts            # Système de notifications
+├── i18n/
+│   ├── index.ts               # Config i18next (langue persistée en localStorage)
+│   └── locales/
+│       ├── fr.json            # Traductions françaises
+│       └── en.json            # Traductions anglaises
 ├── types/
 │   └── index.ts               # Tous les types TypeScript
 ├── utils/
-│   ├── gameLogic.ts           # XP, level up, reset logic
-│   └── initialData.ts         # Données de départ
+│   ├── gameLogic.ts           # XP, level up/down, reset logic
+│   ├── initialData.ts         # Données de départ
+│   └── themes.ts              # Définitions des 5 thèmes visuels
 └── App.tsx                    # Orchestration + routing joueur
 ```
 
@@ -70,9 +76,7 @@ src/
 
 ### Séparation stockage / logique (`usePlayers` + `useGameState`)
 
-Le choix le plus structurant du projet. Au départ, `useGameState` gérait à la fois la logique de jeu **et** la persistance localStorage. Quand on a voulu ajouter les profils multi-joueurs, il a fallu découpler les deux.
-
-`usePlayers` est le seul responsable du stockage :
+Le choix le plus structurant du projet. `usePlayers` est le seul responsable du stockage. `useGameState` reçoit un `gameState` et un `setGameState` en props — ce qui le rend indépendant du système multi-joueurs et facilite les tests.
 
 ```typescript
 // usePlayers.ts
@@ -93,14 +97,9 @@ const updateActiveGameState = useCallback(
 );
 ```
 
-`useGameState` ne sait plus qu'il est dans un système multi-joueurs. Il reçoit un `gameState` et un `setGameState` en props, exactement comme un `useState` classique — ce qui rend les functional updates transparents.
-
 ### Remount sur changement de joueur (`key` prop)
 
-Quand on change de joueur actif, React doit réinitialiser tous les états locaux des composants (modals ouverts, effets de reset des quêtes, etc.). La solution la plus propre : donner à `GameApp` une `key={player.id}`.
-
 ```tsx
-// App.tsx
 <GameApp
   key={activePlayer.id}  // force unmount/remount complet
   player={activePlayer}
@@ -108,28 +107,72 @@ Quand on change de joueur actif, React doit réinitialiser tous les états locau
 />
 ```
 
-Pas besoin de gérer manuellement la réinitialisation — React s'en charge.
+Pas besoin de gérer manuellement la réinitialisation des états locaux.
 
-### FactionId : de union type à `string`
+### Système de thèmes via CSS custom properties
 
-Au départ `FactionId = 'job' | 'sport' | 'culture'` — pratique pour l'autocompletion, mais incompatible avec des factions dynamiques créées par l'utilisateur. On a changé en `FactionId = string`.
+5 thèmes dark définis dans `themes.ts` avec 3 valeurs hex (`bg`, `cardBg`, `outline`). `useTheme` convertit ces hex en RGB pour le support des modificateurs d'opacité Tailwind et injecte les vars CSS sur `:root` :
 
-La perte : TypeScript ne peut plus vérifier les IDs de faction à la compilation. Le gain : le CRUD de factions est possible sans toucher aux types.
+```typescript
+root.style.setProperty('--theme-bg', theme.bg);
+root.style.setProperty('--theme-card-bg', theme.cardBg);
+root.style.setProperty('--theme-outline', theme.outline);
+// + --color-bg-dark / --color-bg-card en format "R G B" pour Tailwind
+```
 
-### Système de streak sans date dédiée
+Le thème est persisté dans `renown-tracker-theme`.
 
-Les streaks auraient pu nécessiter un champ `lastCompletedAt: string` pour détecter les jours manqués. On s'est appuyé sur le mécanisme de reset existant à la place :
+### Lien quête journalière → hebdo (`linkedWeeklyQuestId`)
 
-- Au reset daily/weekly : si la quête n'est **pas** complétée → `streakCount = 0`
-- À la complétion : `streakCount++`
+Une quête journalière peut être liée à une quête hebdo de type progression. Quand la journalière est complétée, le compteur de la hebdo est auto-incrémenté. Si la hebdo atteint sa cible, elle est complétée avec ses récompenses dans le même `setGameState` (update atomique).
 
-Le reset se déclenche au chargement de l'app si le jour/la semaine a changé depuis le dernier reset. Ça couvre le cas "j'ouvre l'app le matin, les quêtes se resetent, les streaks brisés sont détectés".
+```typescript
+// useGameState.ts — dans completeQuest()
+if (quest.linkedWeeklyQuestId) {
+  const weekly = finalQuests.find(q => q.id === quest.linkedWeeklyQuestId);
+  if (weekly && !isQuestCompleted(weekly) && weekly.completionType === 'progress') {
+    // incrément + complétion si target atteinte
+  }
+}
+```
+
+### Régression de niveau à la dévalidation
+
+Décocher une quête retire l'XP **et fait régresser le niveau** si nécessaire, en remontant dans les niveaux précédents :
+
+```typescript
+// gameLogic.ts
+export function removeXPFromFaction(faction, xpAmount) {
+  let newXP = faction.currentXP - xpAmount;
+  let newLevel = faction.renownLevel;
+  while (newXP < 0 && newLevel > 0) {
+    newLevel--;
+    newXP += getXPForNextLevel(newLevel); // récupère la capacité du niveau inférieur
+  }
+  // ...
+}
+```
+
+La même logique s'applique à `removePlayerXP` pour le niveau joueur.
+
+### Animation de barre XP au level-up
+
+Au lieu de lier la largeur de la barre directement à la valeur XP (ce qui donnerait une réduction visible), les composants `FactionCard` et `Header` maintiennent un `displayPercent` indépendant qui joue une séquence en 3 phases :
+
+1. Remplir jusqu'à 100% (transition 500ms)
+2. Reset instantané à 0% (`transition: none`)
+3. Remplir vers la nouvelle valeur (transition 500ms)
+
+Un `animatingRef` bloque les mises à jour React entrantes pendant l'animation.
+
+### Internationalisation (i18next)
+
+Deux langues (FR/EN) via `react-i18next`. La langue est persistée dans `renown-tracker-lang`. Pour les contextes non-React (toasts, `confirm()` dans `useGameState`), `i18n.t()` est importé directement depuis le module i18n.
 
 ### Format de stockage : clé unique
 
-Deux options avaient été envisagées :
+Une seule clé `renown-tracker` contient l'ensemble du store :
 
-**Option A** (retenue) — une seule clé `renown-tracker` :
 ```json
 {
   "activePlayerId": "player-123",
@@ -139,73 +182,71 @@ Deux options avaient été envisagées :
 }
 ```
 
-**Option B** — une clé par joueur + une clé meta.
-
-Option A choisie pour la simplicité : lecture/écriture atomique, pas de désynchronisation possible entre les clés. La limite de 5-10 MB de localStorage est largement suffisante pour quelques profils familiaux.
-
-### Migration de l'ancien format
-
-Si `renown-tracker-state` (ancien format mono-joueur) existe dans localStorage, il est automatiquement migré en premier joueur au démarrage de `usePlayers`. L'utilisateur ne perd pas ses données.
-
-```typescript
-const legacy = localStorage.getItem('renown-tracker-state');
-if (legacy) {
-  const player = {
-    id: `player-${Date.now()}`,
-    name: 'Joueur 1',
-    emoji: '🧙',
-    color: '#9d4edd',
-    createdAt: new Date().toISOString(),
-    gameState: JSON.parse(legacy),
-  };
-  return { activePlayerId: player.id, players: [player] };
-}
-```
+Lecture/écriture atomique, pas de désynchronisation possible.
 
 ### Anneau de progression SVG
 
-La barre de progression circulaire des factions est un SVG natif avec `stroke-dasharray` / `stroke-dashoffset`. Pas de lib canvas ou de composant tiers.
-
 ```tsx
-const circumference = 2 * Math.PI * 44; // rayon = 44
-const offset = circumference - (progressPercentage / 100) * circumference;
-// strokeDashoffset animé via transition CSS
+const circumference = 2 * Math.PI * radius;
+const displayOffset = circumference - (displayPercent / 100) * circumference;
+// strokeDashoffset animé via transition CSS ou séquence level-up
 ```
 
 ---
 
 ## Fonctionnement du jeu
 
-### Courbe d'XP
+### Courbe d'XP factions
 
-Progression linéaire : niveau N requiert `N × 100` XP.
+Progression linéaire, les factions démarrent au **niveau 0** :
 
 ```typescript
 export function getXPForNextLevel(level: number): number {
-  return 100 * level; // 100, 200, 300...
+  return 100 * (level + 1); // niveau 0 → 1 : 100 XP, niveau 1 → 2 : 200 XP...
 }
 ```
 
-Pour une courbe exponentielle :
-```typescript
-return Math.floor(100 * Math.pow(1.5, level - 1));
+Le surplus XP est toujours préservé au level-up (boucle `while` recalculant le seuil à chaque itération).
+
+### Niveau joueur
+
+Le joueur a son propre niveau indépendant des factions. Chaque level-up de faction récompense le joueur en XP équivalent au **coût du niveau franchi** :
+
 ```
+Faction niveau 2 → 3 (coût 300 XP) → joueur reçoit 300 XP joueur
+```
+
+La barre joueur suit la même formule `100 × (playerLevel + 1)`.
+
+### Système de streak
+
+- À la complétion : `streakCount++`
+- Au reset daily/weekly : si la quête n'était **pas** complétée → `streakCount = 0`
+
+Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à détecter les jours/semaines manqués.
 
 ### Reset des quêtes
 
 - **Daily** : reset si `lastDailyReset` est un jour différent d'aujourd'hui
 - **Weekly** : reset si le dernier lundi avant `lastWeeklyReset` ≠ le dernier lundi avant maintenant
 
-Le reset se fait au montage du hook dans un `useEffect(() => {...}, [])`. Le streak brisé est détecté à ce moment-là, avant de remettre `completed` à `false`.
+Le reset se déclenche au montage de `useGameState`, dans un `useEffect([], [])`.
 
 ---
 
 ## Roadmap
 
+- [x] CRUD factions et quêtes
+- [x] Système de streak
+- [x] Multi-joueurs
+- [x] Animations level-up (faction card + barre XP)
+- [x] Système de thèmes visuels (5 thèmes dark)
+- [x] Niveau global du joueur (découplé des factions)
+- [x] Lien quête journalière → hebdo (auto-incrément)
+- [x] Dévalidation avec régression de niveau
+- [x] Internationalisation FR/EN
 - [ ] Modales de confirmation custom (remplacer les `confirm()` natifs)
-- [ ] Niveau global du joueur (agrégat de toutes les factions)
 - [ ] Responsive mobile
-- [ ] Animations level-up
 - [ ] Historique des actions
 - [ ] Filtres sur les quêtes (incomplètes, par faction...)
 

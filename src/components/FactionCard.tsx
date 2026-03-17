@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Faction } from '../types';
 
 interface FactionCardProps {
@@ -12,19 +13,53 @@ interface FactionCardProps {
 }
 
 export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, onEdit, onDelete }: FactionCardProps) {
+  const { t } = useTranslation();
   const progressPercentage = (faction.currentXP / faction.xpToNextLevel) * 100;
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (progressPercentage / 100) * circumference;
 
   const [animating, setAnimating] = useState(false);
+  const [displayPercent, setDisplayPercent] = useState(progressPercentage);
+  const [noTransition, setNoTransition] = useState(false);
+  const animatingRef = useRef(false);
+  const progressRef = useRef(progressPercentage);
+  progressRef.current = progressPercentage;
 
+  // Mise à jour normale (gain XP sans level-up)
+  useEffect(() => {
+    if (animatingRef.current) return;
+    setDisplayPercent(progressPercentage);
+  }, [progressPercentage]);
+
+  // Animation level-up : remplir → reset → remplir
   useEffect(() => {
     if (levelUpTrigger === 0) return;
+
+    animatingRef.current = true;
     setAnimating(true);
-    const t = setTimeout(() => setAnimating(false), 850);
-    return () => clearTimeout(t);
+    const t1 = setTimeout(() => setAnimating(false), 850);
+
+    // Phase 1 : remplir jusqu'à 100%
+    setNoTransition(false);
+    setDisplayPercent(100);
+
+    const t2 = setTimeout(() => {
+      // Phase 2 : reset instantané à 0
+      setNoTransition(true);
+      setDisplayPercent(0);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        // Phase 3 : remplir vers la nouvelle valeur
+        setNoTransition(false);
+        setDisplayPercent(progressRef.current);
+        setTimeout(() => { animatingRef.current = false; }, 600);
+      }));
+    }, 550);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [levelUpTrigger]);
+
+  const displayOffset = circumference - (displayPercent / 100) * circumference;
 
   return (
     <div
@@ -46,8 +81,11 @@ export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, on
           <circle
             cx="26" cy="26" r={radius} fill="none"
             stroke={faction.color} strokeWidth="4" strokeLinecap="round"
-            strokeDasharray={circumference} strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 0.5s ease', filter: `drop-shadow(0 0 3px ${faction.color})` }}
+            strokeDasharray={circumference} strokeDashoffset={displayOffset}
+            style={{
+              transition: noTransition ? 'none' : 'stroke-dashoffset 0.5s ease',
+              filter: `drop-shadow(0 0 3px ${faction.color})`
+            }}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -60,16 +98,20 @@ export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, on
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-title text-white text-base truncate">{faction.name}</h3>
           <span className="text-sm font-bold flex-shrink-0" style={{ color: faction.color }}>
-            Niv.{faction.renownLevel}
+            {t('common.level')}{faction.renownLevel}
           </span>
         </div>
         <div className="w-full bg-gray-700/50 rounded-full h-1 mt-1.5 overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${progressPercentage}%`, backgroundColor: faction.color }}
+            className="h-full rounded-full"
+            style={{
+              width: `${displayPercent}%`,
+              backgroundColor: faction.color,
+              transition: noTransition ? 'none' : 'width 0.5s ease',
+            }}
           />
         </div>
-        <p className="text-xs text-gray-400 mt-1">{faction.currentXP} / {faction.xpToNextLevel} XP</p>
+        <p className="text-xs text-gray-400 mt-1">{faction.currentXP} / {faction.xpToNextLevel} {t('common.xp')}</p>
       </div>
 
       {/* Boutons edit/delete */}

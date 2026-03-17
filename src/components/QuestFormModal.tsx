@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Quest, Faction, FactionId, QuestType, CompletionType } from '../types';
 
 export interface QuestFormData {
@@ -12,17 +13,20 @@ export interface QuestFormData {
   xpReward: number;
   currencyReward: number;
   followStreak: boolean;
+  linkedWeeklyQuestId?: string;
 }
 
 interface QuestFormModalProps {
   initialData?: Quest;
   defaultFactionId?: FactionId;
   factions: Faction[];
+  quests: Quest[];
   onSave: (data: QuestFormData) => void;
   onClose: () => void;
 }
 
-export function QuestFormModal({ initialData, defaultFactionId, factions, onSave, onClose }: QuestFormModalProps) {
+export function QuestFormModal({ initialData, defaultFactionId, factions, quests, onSave, onClose }: QuestFormModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<QuestFormData>({
     title: initialData?.title ?? '',
     description: initialData?.description ?? '',
@@ -33,6 +37,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
     xpReward: initialData?.xpReward ?? 50,
     currencyReward: initialData?.currencyReward ?? 10,
     followStreak: initialData?.followStreak ?? false,
+    linkedWeeklyQuestId: initialData?.linkedWeeklyQuestId ?? '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -53,7 +58,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
       <div className="relative bg-bg-card border border-gray-700 rounded-xl p-6 w-full max-w-md shadow-2xl">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-title text-accent-gold">
-            {initialData ? 'Modifier la quête' : 'Nouvelle quête'}
+            {initialData ? t('quest.modal.titleEdit') : t('quest.modal.titleCreate')}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             <X size={20} />
@@ -63,33 +68,33 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Titre */}
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Titre *</label>
+            <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.titleLabel')}</label>
             <input
               type="text"
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               className={inputClass}
-              placeholder="Ex: Postuler à 3 offres d'emploi"
+              placeholder={t('quest.modal.titlePlaceholder')}
               required
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Description</label>
+            <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.descriptionLabel')}</label>
             <input
               type="text"
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               className={inputClass}
-              placeholder="Description optionnelle"
+              placeholder={t('quest.modal.descriptionPlaceholder')}
             />
           </div>
 
           {/* Faction + Fréquence */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Faction</label>
+              <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.factionLabel')}</label>
               <select
                 value={form.factionId}
                 onChange={e => setForm(f => ({ ...f, factionId: e.target.value as FactionId }))}
@@ -103,35 +108,35 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Fréquence</label>
+              <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.frequencyLabel')}</label>
               <select
                 value={form.type}
                 onChange={e => setForm(f => ({ ...f, type: e.target.value as QuestType }))}
                 className={inputClass}
               >
-                <option value="daily">Journalière</option>
-                <option value="weekly">Hebdomadaire</option>
+                <option value="daily">{t('quest.modal.daily')}</option>
+                <option value="weekly">{t('quest.modal.weekly')}</option>
               </select>
             </div>
           </div>
 
           {/* Type de complétion */}
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Type de complétion</label>
+            <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.completionTypeLabel')}</label>
             <select
               value={form.completionType}
               onChange={e => setForm(f => ({ ...f, completionType: e.target.value as CompletionType }))}
               className={inputClass}
             >
-              <option value="boolean">Oui / Non (valider d'un clic)</option>
-              <option value="progress">Progression (compteur jusqu'à une cible)</option>
+              <option value="boolean">{t('quest.modal.typeBoolean')}</option>
+              <option value="progress">{t('quest.modal.typeProgress')}</option>
             </select>
           </div>
 
           {/* Objectif (progress uniquement) */}
           {form.completionType === 'progress' && (
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Objectif</label>
+              <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.targetLabel')}</label>
               <input
                 type="number"
                 min={1}
@@ -145,7 +150,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
           {/* Récompenses */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">XP</label>
+              <label className="block text-sm text-gray-400 mb-1">{t('common.xp')}</label>
               <input
                 type="number"
                 min={0}
@@ -155,7 +160,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Gemmes</label>
+              <label className="block text-sm text-gray-400 mb-1">{t('common.gems')}</label>
               <input
                 type="number"
                 min={0}
@@ -166,11 +171,34 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
             </div>
           </div>
 
+          {/* Lien quête hebdo (journalières uniquement) */}
+          {form.type === 'daily' && (() => {
+            const linkable = quests.filter(
+              q => q.factionId === form.factionId && q.type === 'weekly' && q.completionType === 'progress'
+            );
+            if (linkable.length === 0) return null;
+            return (
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.linkWeeklyLabel')}</label>
+                <select
+                  value={form.linkedWeeklyQuestId ?? ''}
+                  onChange={e => setForm(f => ({ ...f, linkedWeeklyQuestId: e.target.value || undefined }))}
+                  className={inputClass}
+                >
+                  <option value="">{t('quest.modal.noLink')}</option>
+                  {linkable.map(q => (
+                    <option key={q.id} value={q.id}>{q.title}</option>
+                  ))}
+                </select>
+              </div>
+            );
+          })()}
+
           {/* Streak */}
           <div className="flex items-center justify-between bg-bg-dark border border-gray-700 rounded-lg px-3 py-2">
             <div>
-              <p className="text-sm text-white">Suivre le streak</p>
-              <p className="text-xs text-gray-500">Compteur de jours/semaines consécutifs</p>
+              <p className="text-sm text-white">{t('quest.modal.streakLabel')}</p>
+              <p className="text-xs text-gray-500">{t('quest.modal.streakDescription')}</p>
             </div>
             <button
               type="button"
@@ -190,13 +218,13 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, onSave
               onClick={onClose}
               className="flex-1 bg-bg-dark hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg transition-colors border border-gray-700"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="flex-1 bg-accent-purple hover:bg-accent-purple/80 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
             >
-              {initialData ? 'Modifier' : 'Créer'}
+              {initialData ? t('common.edit') : t('common.create')}
             </button>
           </div>
         </form>

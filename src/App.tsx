@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useGameState } from './hooks/useGameState';
 import { usePlayers } from './hooks/usePlayers';
 import { useToast } from './hooks/useToast';
@@ -54,9 +55,12 @@ function GameApp({
     deleteFaction,
     resetAllData,
     importData,
+    debugResetDailies,
+    debugResetWeeklies,
   } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp);
 
   const { themeId, setThemeId } = useTheme();
+  const { t, i18n } = useTranslation();
 
   const [modal, setModal] = useState<QuestModalState | null>(null);
   const [factionModal, setFactionModal] = useState<FactionModalState | null>(null);
@@ -147,18 +151,18 @@ function GameApp({
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
             >
               <Download size={14} />
-              Export
+              {t('app.settings.export')}
             </button>
             <button
               onClick={() => { handleImport(); setMenuOpen(false); }}
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
             >
               <Upload size={14} />
-              Import
+              {t('app.settings.import')}
             </button>
             <div className="border-t border-gray-700" />
             <div className="px-4 py-2.5">
-              <p className="text-xs text-gray-500 mb-2">Thème</p>
+              <p className="text-xs text-gray-500 mb-2">{t('app.settings.theme')}</p>
               <div className="flex gap-2">
                 {THEMES.map(t => (
                   <button
@@ -175,12 +179,50 @@ function GameApp({
               </div>
             </div>
             <div className="border-t border-gray-700" />
+            <div className="px-4 py-2.5">
+              <p className="text-xs text-gray-500 mb-2">{t('app.settings.language')}</p>
+              <div className="flex gap-1.5">
+                {['fr', 'en'].map(lang => (
+                  <button
+                    key={lang}
+                    onClick={() => i18n.changeLanguage(lang)}
+                    className="flex-1 px-2 py-1 text-xs rounded transition-colors font-bold"
+                    style={{
+                      backgroundColor: i18n.language === lang ? 'var(--theme-outline)' : 'transparent',
+                      color: i18n.language === lang ? 'white' : '#6b7280',
+                      border: '1px solid var(--theme-outline)',
+                    }}
+                  >
+                    {lang.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-gray-700" />
+            <div className="px-4 py-1.5">
+              <p className="text-xs text-orange-500/70 mb-1">{t('app.settings.debug')}</p>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => { debugResetDailies(); setMenuOpen(false); }}
+                  className="flex-1 px-2 py-1.5 text-xs text-orange-400 bg-orange-900/20 hover:bg-orange-900/40 rounded transition-colors"
+                >
+                  {t('app.settings.debugDaily')}
+                </button>
+                <button
+                  onClick={() => { debugResetWeeklies(); setMenuOpen(false); }}
+                  className="flex-1 px-2 py-1.5 text-xs text-orange-400 bg-orange-900/20 hover:bg-orange-900/40 rounded transition-colors"
+                >
+                  {t('app.settings.debugWeekly')}
+                </button>
+              </div>
+            </div>
+            <div className="border-t border-gray-700" />
             <button
               onClick={() => { resetAllData(); setMenuOpen(false); }}
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-900/20 transition-colors"
             >
               <RotateCcw size={14} />
-              Reset
+              {t('app.settings.reset')}
             </button>
           </div>
         )}
@@ -214,7 +256,7 @@ function GameApp({
               className="flex items-center justify-center gap-2 w-full p-3 rounded-xl border border-dashed border-gray-700 hover:border-gray-500 text-gray-600 hover:text-gray-400 transition-all text-sm"
             >
               <Plus size={16} />
-              Nouvelle faction
+              {t('faction.newFaction')}
             </button>
           </div>
 
@@ -229,7 +271,7 @@ function GameApp({
                     <div>
                       <h2 className="text-2xl font-title text-white">{selectedFaction.name}</h2>
                       <p className="text-sm" style={{ color: selectedFaction.color }}>
-                        Niveau {selectedFaction.renownLevel} · {selectedFaction.currentXP} / {selectedFaction.xpToNextLevel} XP
+                        {t('faction.headerLevel', { level: selectedFaction.renownLevel, current: selectedFaction.currentXP, max: selectedFaction.xpToNextLevel })}
                       </p>
                     </div>
                   </div>
@@ -238,17 +280,17 @@ function GameApp({
                     className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
                   >
                     <Plus size={15} />
-                    Ajouter une quête
+                    {t('quest.addQuest')}
                   </button>
                 </div>
 
                 {factionQuests.length === 0 && (
-                  <p className="text-gray-600 text-sm italic">Aucune quête pour cette faction.</p>
+                  <p className="text-gray-600 text-sm italic">{t('quest.noQuests')}</p>
                 )}
 
                 {dailyQuests.length > 0 && (
                   <div className="mb-8">
-                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Journalières</h3>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t('quest.sectionDaily')}</h3>
                     <div className="space-y-3">
                       {dailyQuests.map((quest) => (
                         <QuestCard
@@ -268,7 +310,7 @@ function GameApp({
 
                 {weeklyQuests.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Hebdomadaires</h3>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t('quest.sectionWeekly')}</h3>
                     <div className="space-y-6">
                       {weeklyQuests.map((quest) => (
                         <QuestCard
@@ -288,7 +330,7 @@ function GameApp({
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-48 text-gray-600">
-                <p className="text-sm italic">Créez votre première faction pour commencer.</p>
+                <p className="text-sm italic">{t('faction.emptyMessage')}</p>
               </div>
             )}
           </div>
@@ -311,6 +353,7 @@ function GameApp({
           initialData={modal.mode === 'edit' ? modal.quest : undefined}
           defaultFactionId={modal.mode === 'create' ? modal.defaultFactionId : undefined}
           factions={gameState.factions}
+          quests={gameState.quests}
           onSave={handleSave}
           onClose={() => setModal(null)}
         />

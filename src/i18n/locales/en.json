@@ -1,0 +1,92 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "create": "Create",
+    "delete": "Delete",
+    "level": "Lv.",
+    "xp": "XP",
+    "gems": "Gems"
+  },
+  "app": {
+    "settings": {
+      "export": "Export",
+      "import": "Import",
+      "theme": "Theme",
+      "language": "Language",
+      "debug": "⚠ Debug",
+      "debugDaily": "Reset D",
+      "debugWeekly": "Reset W",
+      "reset": "Reset"
+    },
+    "confirm": {
+      "reset": "Are you sure you want to reset all your data?"
+    }
+  },
+  "player": {
+    "switchProfile": "Switch profile",
+    "newProfile": "New profile",
+    "importProfile": "Import a profile",
+    "deleteConfirm": "Delete profile \"{{name}}\" permanently?",
+    "emptyMessage": "Create your first profile",
+    "chooseMessage": "Choose your character"
+  },
+  "faction": {
+    "newFaction": "New faction",
+    "emptyMessage": "Create your first faction to get started.",
+    "headerLevel": "Level {{level}} · {{current}} / {{max}} XP",
+    "deleteConfirm": "Delete this faction and all its quests permanently?",
+    "modal": {
+      "titleEdit": "Edit faction",
+      "titleCreate": "New faction",
+      "nameLabel": "Name *",
+      "namePlaceholder": "Ex: Creativity",
+      "iconLabel": "Icon (emoji)",
+      "iconPlaceholder": "🎨",
+      "colorLabel": "Color",
+      "previewLabel": "Preview"
+    }
+  },
+  "quest": {
+    "sectionDaily": "Daily",
+    "sectionWeekly": "Weekly",
+    "addQuest": "Add quest",
+    "noQuests": "No quests for this faction.",
+    "progressLabel": "Progress",
+    "validate": "Validate",
+    "button": {
+      "uncomplete": "Cancel validation",
+      "increment": "Increment"
+    },
+    "weeklyBadge": "Weekly",
+    "deleteConfirm": "Delete this quest permanently?",
+    "modal": {
+      "titleEdit": "Edit quest",
+      "titleCreate": "New quest",
+      "titleLabel": "Title *",
+      "titlePlaceholder": "Ex: Apply to 3 job offers",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional description",
+      "factionLabel": "Faction",
+      "frequencyLabel": "Frequency",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "completionTypeLabel": "Completion type",
+      "typeBoolean": "Yes / No (one-click validation)",
+      "typeProgress": "Progress (counter up to a target)",
+      "targetLabel": "Target",
+      "streakLabel": "Track streak",
+      "streakDescription": "Consecutive days/weeks counter",
+      "linkWeeklyLabel": "Link to a weekly quest",
+      "noLink": "None"
+    }
+  },
+  "toast": {
+    "factionLevelUp": "🎉 {{name}} level {{level}}!",
+    "weeklyCompleted": "✅ Weekly quest \"{{title}}\" completed!",
+    "importSuccess": "Data imported successfully!",
+    "importError": "Error importing data",
+    "debugResetDaily": "[DEBUG] Daily reset done",
+    "debugResetWeekly": "[DEBUG] Weekly reset done"
+  }
+}

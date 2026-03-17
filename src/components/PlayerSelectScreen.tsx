@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Download, Upload } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Player } from '../types';
 import { PlayerFormModal, PlayerFormData } from './PlayerFormModal';
 
@@ -26,6 +27,7 @@ export function PlayerSelectScreen({
   onExport,
   onImport,
 }: PlayerSelectScreenProps) {
+  const { t } = useTranslation();
   const [modal, setModal] = useState<ModalState | null>(null);
 
   const handleSave = (data: PlayerFormData) => {
@@ -38,7 +40,7 @@ export function PlayerSelectScreen({
   };
 
   const handleDelete = (player: Player) => {
-    if (confirm(`Supprimer le profil "${player.name}" définitivement ?`)) {
+    if (confirm(t('player.deleteConfirm', { name: player.name }))) {
       onDelete(player.id);
     }
   };
@@ -58,7 +60,7 @@ export function PlayerSelectScreen({
             RENOWN TRACKER
           </h1>
           <p className="text-gray-400 tracking-widest">
-            {players.length === 0 ? 'Créez votre premier profil' : 'Choisissez votre personnage'}
+            {players.length === 0 ? t('player.emptyMessage') : t('player.chooseMessage')}
           </p>
         </div>
 
@@ -81,7 +83,7 @@ export function PlayerSelectScreen({
                 <button
                   onClick={() => onExport(player.id)}
                   className="p-1.5 rounded-md bg-bg-dark hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-                  title="Exporter"
+                  title={t('app.settings.export')}
                 >
                   <Download size={12} />
                 </button>
@@ -118,7 +120,7 @@ export function PlayerSelectScreen({
             className="flex flex-col items-center justify-center gap-2 bg-bg-card/40 rounded-xl p-6 border border-dashed border-gray-700 hover:border-gray-500 text-gray-600 hover:text-gray-400 transition-all hover:-translate-y-1"
           >
             <Plus size={28} />
-            <span className="text-sm">Nouveau profil</span>
+            <span className="text-sm">{t('player.newProfile')}</span>
           </button>
         </div>
 
@@ -129,7 +131,7 @@ export function PlayerSelectScreen({
             className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors mx-auto"
           >
             <Upload size={14} />
-            Importer un profil
+            {t('player.importProfile')}
           </button>
         </div>
       </div>

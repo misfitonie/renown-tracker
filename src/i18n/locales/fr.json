@@ -1,0 +1,92 @@
+{
+  "common": {
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "create": "Créer",
+    "delete": "Supprimer",
+    "level": "Niv.",
+    "xp": "XP",
+    "gems": "Gemmes"
+  },
+  "app": {
+    "settings": {
+      "export": "Export",
+      "import": "Import",
+      "theme": "Thème",
+      "language": "Langue",
+      "debug": "⚠ Debug",
+      "debugDaily": "Reset J",
+      "debugWeekly": "Reset H",
+      "reset": "Reset"
+    },
+    "confirm": {
+      "reset": "Êtes-vous sûr de vouloir réinitialiser toutes vos données ?"
+    }
+  },
+  "player": {
+    "switchProfile": "Changer de profil",
+    "newProfile": "Nouveau profil",
+    "importProfile": "Importer un profil",
+    "deleteConfirm": "Supprimer le profil \"{{name}}\" définitivement ?",
+    "emptyMessage": "Créez votre premier profil",
+    "chooseMessage": "Choisissez votre personnage"
+  },
+  "faction": {
+    "newFaction": "Nouvelle faction",
+    "emptyMessage": "Créez votre première faction pour commencer.",
+    "headerLevel": "Niveau {{level}} · {{current}} / {{max}} XP",
+    "deleteConfirm": "Supprimer cette faction et toutes ses quêtes définitivement ?",
+    "modal": {
+      "titleEdit": "Modifier la faction",
+      "titleCreate": "Nouvelle faction",
+      "nameLabel": "Nom *",
+      "namePlaceholder": "Ex: Créativité",
+      "iconLabel": "Icône (emoji)",
+      "iconPlaceholder": "🎨",
+      "colorLabel": "Couleur",
+      "previewLabel": "Aperçu"
+    }
+  },
+  "quest": {
+    "sectionDaily": "Journalières",
+    "sectionWeekly": "Hebdomadaires",
+    "addQuest": "Ajouter une quête",
+    "noQuests": "Aucune quête pour cette faction.",
+    "progressLabel": "Progression",
+    "validate": "Valider",
+    "button": {
+      "uncomplete": "Annuler la validation",
+      "increment": "Incrémenter"
+    },
+    "weeklyBadge": "Hebdo",
+    "deleteConfirm": "Supprimer cette quête définitivement ?",
+    "modal": {
+      "titleEdit": "Modifier la quête",
+      "titleCreate": "Nouvelle quête",
+      "titleLabel": "Titre *",
+      "titlePlaceholder": "Ex: Postuler à 3 offres d'emploi",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Description optionnelle",
+      "factionLabel": "Faction",
+      "frequencyLabel": "Fréquence",
+      "daily": "Journalière",
+      "weekly": "Hebdomadaire",
+      "completionTypeLabel": "Type de complétion",
+      "typeBoolean": "Oui / Non (valider d'un clic)",
+      "typeProgress": "Progression (compteur jusqu'à une cible)",
+      "targetLabel": "Objectif",
+      "streakLabel": "Suivre le streak",
+      "streakDescription": "Compteur de jours/semaines consécutifs",
+      "linkWeeklyLabel": "Lier à une quête hebdo",
+      "noLink": "Aucune"
+    }
+  },
+  "toast": {
+    "factionLevelUp": "🎉 {{name}} niveau {{level}} !",
+    "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",
+    "importSuccess": "Données importées avec succès !",
+    "importError": "Erreur lors de l'import des données",
+    "debugResetDaily": "[DEBUG] Reset journalier effectué",
+    "debugResetWeekly": "[DEBUG] Reset hebdomadaire effectué"
+  }
+}

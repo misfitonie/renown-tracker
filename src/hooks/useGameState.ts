@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { GameState, Quest, FactionId } from '../types';
 import { getInitialGameState } from '../utils/initialData';
-import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, addPlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
+import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
+import i18n from '../i18n';
 
 export function useGameState(
   gameState: GameState,
@@ -66,7 +67,7 @@ export function useGameState(
     const quest = gameState.quests.find(q => q.id === questId);
     if (!quest || isQuestCompleted(quest)) return;
 
-    const updatedQuests = gameState.quests.map(q =>
+    let finalQuests = gameState.quests.map(q =>
       q.id === questId
         ? { ...q, completed: true, streakCount: q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount }
         : q
@@ -80,23 +81,64 @@ export function useGameState(
       quest.xpReward
     );
 
-    const updatedFactions = [...gameState.factions];
-    updatedFactions[factionIndex] = updatedFaction;
+    let finalFactions = [...gameState.factions];
+    finalFactions[factionIndex] = updatedFaction;
 
-    const playerUpdate = leveledUp
-      ? addPlayerXP(gameState.playerXP, gameState.playerLevel, updatedFaction.renownLevel * 50)
+    let finalCurrency = gameState.currency + quest.currencyReward;
+    let finalPlayerUpdate = leveledUp
+      ? addPlayerXP(gameState.playerXP, gameState.playerLevel, getXPForNextLevel(updatedFaction.renownLevel - 1))
       : { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
+
+    // Auto-incrémenter la quête hebdo liée
+    if (quest.linkedWeeklyQuestId) {
+      const weekly = finalQuests.find(q => q.id === quest.linkedWeeklyQuestId);
+      if (weekly && !isQuestCompleted(weekly) && weekly.completionType === 'progress') {
+        const newCurrent = (weekly.current ?? 0) + 1;
+        const weeklyNowComplete = weekly.target !== undefined && newCurrent >= weekly.target;
+
+        finalQuests = finalQuests.map(q =>
+          q.id === weekly.id
+            ? {
+                ...q,
+                current: newCurrent,
+                completed: weeklyNowComplete,
+                streakCount: weeklyNowComplete && q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount,
+              }
+            : q
+        );
+
+        if (weeklyNowComplete) {
+          const weeklyFactionIdx = finalFactions.findIndex(f => f.id === weekly.factionId);
+          if (weeklyFactionIdx !== -1) {
+            const { faction: wFaction, leveledUp: wLeveledUp } = addXPToFaction(
+              finalFactions[weeklyFactionIdx],
+              weekly.xpReward
+            );
+            finalFactions = [...finalFactions];
+            finalFactions[weeklyFactionIdx] = wFaction;
+            finalCurrency += weekly.currencyReward;
+
+            if (wLeveledUp) {
+              finalPlayerUpdate = addPlayerXP(finalPlayerUpdate.playerXP, finalPlayerUpdate.playerLevel, getXPForNextLevel(wFaction.renownLevel - 1));
+              showToast(i18n.t('toast.factionLevelUp', { name: wFaction.name, level: wFaction.renownLevel }), 'success');
+              onFactionLevelUp?.(weekly.factionId);
+            }
+          }
+          showToast(i18n.t('toast.weeklyCompleted', { title: weekly.title }), 'success');
+        }
+      }
+    }
 
     setGameState({
       ...gameState,
-      quests: updatedQuests,
-      factions: updatedFactions,
-      currency: gameState.currency + quest.currencyReward,
-      ...playerUpdate,
+      quests: finalQuests,
+      factions: finalFactions,
+      currency: finalCurrency,
+      ...finalPlayerUpdate,
     });
 
     if (leveledUp) {
-      showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success');
+      showToast(i18n.t('toast.factionLevelUp', { name: updatedFaction.name, level: updatedFaction.renownLevel }), 'success');
       onFactionLevelUp?.(quest.factionId);
     }
   };
@@ -133,7 +175,7 @@ export function useGameState(
       updatedFactions[factionIndex] = updatedFaction;
 
       const playerUpdate = leveledUp
-        ? addPlayerXP(gameState.playerXP, gameState.playerLevel, updatedFaction.renownLevel * 50)
+        ? addPlayerXP(gameState.playerXP, gameState.playerLevel, getXPForNextLevel(updatedFaction.renownLevel - 1))
         : { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
 
       setGameState({
@@ -145,7 +187,7 @@ export function useGameState(
       });
 
       if (leveledUp) {
-        showToast(`🎉 ${updatedFaction.name} niveau ${updatedFaction.renownLevel} !`, 'success');
+        showToast(i18n.t('toast.factionLevelUp', { name: updatedFaction.name, level: updatedFaction.renownLevel }), 'success');
         onFactionLevelUp?.(quest.factionId);
       }
     } else {
@@ -153,7 +195,7 @@ export function useGameState(
     }
   };
 
-  // Décocher une quête (annule XP et currency)
+  // Décocher une quête (annule XP, currency et régresse le niveau si nécessaire)
   const uncompleteQuest = (questId: string) => {
     const quest = gameState.quests.find(q => q.id === questId);
     if (!quest || !isQuestCompleted(quest)) return;
@@ -171,12 +213,24 @@ export function useGameState(
 
     const factionIndex = gameState.factions.findIndex(f => f.id === quest.factionId);
     const updatedFactions = [...gameState.factions];
+
+    let playerUpdate = { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
+
     if (factionIndex !== -1) {
-      const f = updatedFactions[factionIndex];
-      updatedFactions[factionIndex] = {
-        ...f,
-        currentXP: Math.max(0, f.currentXP - quest.xpReward),
-      };
+      const { faction: updatedFaction, levelsLost } = removeXPFromFaction(
+        updatedFactions[factionIndex],
+        quest.xpReward
+      );
+      updatedFactions[factionIndex] = updatedFaction;
+
+      // Reverse player XP pour chaque niveau de faction perdu
+      if (levelsLost > 0) {
+        let xpToReverse = 0;
+        for (let l = updatedFaction.renownLevel; l < updatedFaction.renownLevel + levelsLost; l++) {
+          xpToReverse += getXPForNextLevel(l);
+        }
+        playerUpdate = removePlayerXP(gameState.playerXP, gameState.playerLevel, xpToReverse);
+      }
     }
 
     setGameState({
@@ -184,6 +238,7 @@ export function useGameState(
       quests: updatedQuests,
       factions: updatedFactions,
       currency: Math.max(0, gameState.currency - quest.currencyReward),
+      ...playerUpdate,
     });
   };
 
@@ -220,7 +275,7 @@ export function useGameState(
 
   // Supprimer une quête
   const deleteQuest = (questId: string) => {
-    if (confirm('Supprimer cette quête définitivement ?')) {
+    if (confirm(i18n.t('quest.deleteConfirm'))) {
       setGameState(prev => ({ ...prev, quests: prev.quests.filter(q => q.id !== questId) }));
     }
   };
@@ -254,7 +309,7 @@ export function useGameState(
 
   // Supprimer une faction (et ses quêtes)
   const deleteFaction = (factionId: FactionId) => {
-    if (confirm('Supprimer cette faction et toutes ses quêtes définitivement ?')) {
+    if (confirm(i18n.t('faction.deleteConfirm'))) {
       setGameState(prev => ({
         ...prev,
         factions: prev.factions.filter(f => f.id !== factionId),
@@ -263,9 +318,47 @@ export function useGameState(
     }
   };
 
+  // [DEBUG] Forcer le reset des quêtes journalières
+  const debugResetDailies = () => {
+    setGameState({
+      ...gameState,
+      quests: gameState.quests.map(quest => {
+        if (quest.type !== 'daily') return quest;
+        const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+        return {
+          ...quest,
+          completed: false,
+          current: quest.completionType === 'progress' ? 0 : undefined,
+          streakCount: streakBroken ? 0 : quest.streakCount,
+        };
+      }),
+      lastDailyReset: new Date().toISOString(),
+    });
+    showToast(i18n.t('toast.debugResetDaily'), 'success');
+  };
+
+  // [DEBUG] Forcer le reset des quêtes hebdomadaires
+  const debugResetWeeklies = () => {
+    setGameState({
+      ...gameState,
+      quests: gameState.quests.map(quest => {
+        if (quest.type !== 'weekly') return quest;
+        const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+        return {
+          ...quest,
+          completed: false,
+          current: quest.completionType === 'progress' ? 0 : undefined,
+          streakCount: streakBroken ? 0 : quest.streakCount,
+        };
+      }),
+      lastWeeklyReset: new Date().toISOString(),
+    });
+    showToast(i18n.t('toast.debugResetWeekly'), 'success');
+  };
+
   // Reset des données du joueur actif
   const resetAllData = () => {
-    if (confirm('Êtes-vous sûr de vouloir réinitialiser toutes vos données ?')) {
+    if (confirm(i18n.t('app.confirm.reset'))) {
       setGameState(getInitialGameState());
     }
   };
@@ -287,9 +380,9 @@ export function useGameState(
     try {
       const data = JSON.parse(jsonString);
       setGameState(data);
-      showToast('Données importées avec succès !', 'success');
+      showToast(i18n.t('toast.importSuccess'), 'success');
     } catch (e) {
-      showToast("Erreur lors de l'import des données", 'error');
+      showToast(i18n.t('toast.importError'), 'error');
       console.error(e);
     }
   };
@@ -308,5 +401,7 @@ export function useGameState(
     resetAllData,
     exportData,
     importData,
+    debugResetDailies,
+    debugResetWeeklies,
   };
 }

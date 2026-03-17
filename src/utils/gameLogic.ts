@@ -59,6 +59,51 @@ function getLastMonday(date: Date): Date {
 }
 
 /**
+ * Retire de l'XP à une faction et gère la descente de niveau
+ * Retourne la faction mise à jour et le nombre de niveaux perdus
+ */
+export function removeXPFromFaction(faction: Faction, xpAmount: number): { faction: Faction; levelsLost: number } {
+  let newXP = faction.currentXP - xpAmount;
+  let newLevel = faction.renownLevel;
+
+  while (newXP < 0 && newLevel > 0) {
+    newLevel--;
+    newXP += getXPForNextLevel(newLevel);
+  }
+
+  newXP = Math.max(0, newXP);
+
+  return {
+    faction: {
+      ...faction,
+      renownLevel: newLevel,
+      currentXP: newXP,
+      xpToNextLevel: getXPForNextLevel(newLevel),
+    },
+    levelsLost: faction.renownLevel - newLevel,
+  };
+}
+
+/**
+ * Retire de l'XP joueur et gère la descente de niveau joueur
+ */
+export function removePlayerXP(
+  currentXP: number,
+  currentLevel: number,
+  amount: number
+): { playerXP: number; playerLevel: number } {
+  let xp = currentXP - amount;
+  let level = currentLevel;
+
+  while (xp < 0 && level > 0) {
+    level--;
+    xp += getXPForNextLevel(level);
+  }
+
+  return { playerXP: Math.max(0, xp), playerLevel: level };
+}
+
+/**
  * Ajoute de l'XP joueur et gère les level-ups du joueur
  * Chaque level-up de faction récompense renownLevel × 50 XP joueur
  */
@@ -86,8 +131,8 @@ export function addXPToFaction(faction: Faction, xpAmount: number): { faction: F
   let leveledUp = false;
 
   // Gérer les level ups multiples si nécessaire
-  while (newXP >= faction.xpToNextLevel) {
-    newXP -= faction.xpToNextLevel;
+  while (newXP >= getXPForNextLevel(newLevel)) {
+    newXP -= getXPForNextLevel(newLevel);
     newLevel++;
     leveledUp = true;
   }

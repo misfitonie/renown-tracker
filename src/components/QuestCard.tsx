@@ -1,4 +1,5 @@
 import { Check, Plus, Gem, Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Quest } from '../types';
 import { isQuestCompleted } from '../utils/gameLogic';
 
@@ -13,6 +14,7 @@ interface QuestCardProps {
 }
 
 export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onIncrement, onEdit, onDelete }: QuestCardProps) {
+  const { t } = useTranslation();
   const completed = isQuestCompleted(quest);
   const progressPercentage = quest.completionType === 'progress' && quest.target
     ? ((quest.current || 0) / quest.target) * 100
@@ -31,7 +33,7 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
             <h4 className="font-semibold text-white">{quest.title}</h4>
             {quest.type === 'weekly' && (
               <span className="text-xs bg-accent-purple px-2 py-0.5 rounded text-white">
-                Hebdo
+                {t('quest.weeklyBadge')}
               </span>
             )}
             {quest.followStreak && (
@@ -46,7 +48,7 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
           {quest.completionType === 'progress' && (
             <div className="space-y-1 mb-3">
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Progression</span>
+                <span>{t('quest.progressLabel')}</span>
                 <span>{quest.current || 0} / {quest.target}</span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
@@ -75,14 +77,14 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
             <button
               onClick={onEdit}
               className="text-gray-500 hover:text-white p-1.5 rounded transition-colors"
-              title="Modifier"
+              title={t('common.edit')}
             >
               <Pencil size={15} />
             </button>
             <button
               onClick={onDelete}
               className="text-gray-500 hover:text-red-400 p-1.5 rounded transition-colors"
-              title="Supprimer"
+              title={t('common.delete')}
             >
               <Trash2 size={15} />
             </button>
@@ -93,7 +95,7 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
             <button
               onClick={onUncomplete}
               className="bg-green-600/20 hover:bg-red-900/30 text-green-400 hover:text-red-400 p-2 rounded-lg transition-colors"
-              title="Annuler la validation"
+              title={t('quest.button.uncomplete')}
             >
               <Check size={20} />
             </button>
@@ -101,7 +103,7 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
             <button
               onClick={onIncrement}
               className="bg-accent-blue hover:bg-accent-blue/80 text-white p-2 rounded-lg transition-colors"
-              title="Incrémenter"
+              title={t('quest.button.increment')}
             >
               <Plus size={20} />
             </button>
@@ -110,7 +112,7 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
               onClick={onComplete}
               className="bg-accent-gold hover:bg-accent-gold/80 text-bg-dark font-bold px-4 py-2 rounded-lg transition-colors"
             >
-              Valider
+              {t('quest.validate')}
             </button>
           )}
         </div>
