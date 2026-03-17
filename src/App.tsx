@@ -55,8 +55,6 @@ function GameApp({
     deleteFaction,
     resetAllData,
     importData,
-    debugResetDailies,
-    debugResetWeeklies,
   } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp);
 
   const { themeId, setThemeId } = useTheme();
@@ -196,24 +194,6 @@ function GameApp({
                     {lang.toUpperCase()}
                   </button>
                 ))}
-              </div>
-            </div>
-            <div className="border-t border-gray-700" />
-            <div className="px-4 py-1.5">
-              <p className="text-xs text-orange-500/70 mb-1">{t('app.settings.debug')}</p>
-              <div className="flex gap-1.5">
-                <button
-                  onClick={() => { debugResetDailies(); setMenuOpen(false); }}
-                  className="flex-1 px-2 py-1.5 text-xs text-orange-400 bg-orange-900/20 hover:bg-orange-900/40 rounded transition-colors"
-                >
-                  {t('app.settings.debugDaily')}
-                </button>
-                <button
-                  onClick={() => { debugResetWeeklies(); setMenuOpen(false); }}
-                  className="flex-1 px-2 py-1.5 text-xs text-orange-400 bg-orange-900/20 hover:bg-orange-900/40 rounded transition-colors"
-                >
-                  {t('app.settings.debugWeekly')}
-                </button>
               </div>
             </div>
             <div className="border-t border-gray-700" />
