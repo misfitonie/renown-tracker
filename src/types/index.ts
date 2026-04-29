@@ -1,5 +1,5 @@
 // Types de base
-export type QuestType = 'daily' | 'weekly';
+export type QuestType = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type CompletionType = 'boolean' | 'progress';
 export type FactionId = string;
 
@@ -46,8 +46,10 @@ export interface GameState {
   currency: number;
   playerXP: number;
   playerLevel: number;
-  lastDailyReset: string;   // ISO date string
-  lastWeeklyReset: string;  // ISO date string
+  lastDailyReset: string;
+  lastWeeklyReset: string;
+  lastMonthlyReset: string;
+  lastYearlyReset: string;
 }
 
 // Un profil joueur

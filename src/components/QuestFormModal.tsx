@@ -118,6 +118,8 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
               >
                 <option value="daily">{t('quest.modal.daily')}</option>
                 <option value="weekly">{t('quest.modal.weekly')}</option>
+                <option value="monthly">{t('quest.modal.monthly')}</option>
+                <option value="yearly">{t('quest.modal.yearly')}</option>
               </select>
             </div>
           </div>

@@ -58,6 +58,18 @@ function getLastMonday(date: Date): Date {
   return result;
 }
 
+export function shouldResetMonthlies(lastResetDate: string): boolean {
+  const lastReset = new Date(lastResetDate);
+  const now = new Date();
+  return lastReset.getFullYear() !== now.getFullYear() || lastReset.getMonth() !== now.getMonth();
+}
+
+export function shouldResetYearlies(lastResetDate: string): boolean {
+  const lastReset = new Date(lastResetDate);
+  const now = new Date();
+  return lastReset.getFullYear() !== now.getFullYear();
+}
+
 /**
  * Retire de l'XP à une faction et gère la descente de niveau
  * Retourne la faction mise à jour et le nombre de niveaux perdus

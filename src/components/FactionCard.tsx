@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, GripVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Faction } from '../types';
 
 interface FactionCardProps {
@@ -14,6 +16,7 @@ interface FactionCardProps {
 
 export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, onEdit, onDelete }: FactionCardProps) {
   const { t } = useTranslation();
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: faction.id });
   const progressPercentage = (faction.currentXP / faction.xpToNextLevel) * 100;
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
@@ -63,6 +66,7 @@ export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, on
 
   return (
     <div
+      ref={setNodeRef}
       className={`relative flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all group ${
         animating ? 'animate-factionLevelUp' : ''
       }`}
@@ -71,6 +75,9 @@ export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, on
         backgroundColor: selected ? `${faction.color}18` : 'var(--theme-card-bg)',
         borderColor: selected ? `${faction.color}88` : 'var(--theme-outline)',
         boxShadow: selected ? `0 0 12px ${faction.color}22` : 'none',
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
       } as React.CSSProperties}
       onClick={onClick}
     >
@@ -114,8 +121,16 @@ export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, on
         <p className="text-xs text-gray-400 mt-1">{faction.currentXP} / {faction.xpToNextLevel} {t('common.xp')}</p>
       </div>
 
-      {/* Boutons edit/delete */}
+      {/* Boutons edit/delete + drag handle */}
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+        <button
+          {...attributes}
+          {...listeners}
+          onClick={e => e.stopPropagation()}
+          className="p-1.5 rounded-md bg-bg-dark hover:bg-gray-700 text-gray-400 hover:text-white transition-colors cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical size={12} />
+        </button>
         <button
           onClick={e => { e.stopPropagation(); onEdit(); }}
           className="p-1.5 rounded-md bg-bg-dark hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"

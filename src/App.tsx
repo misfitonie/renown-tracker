@@ -11,6 +11,9 @@ import { FactionFormModal, FactionFormData } from './components/FactionFormModal
 import { PlayerSelectScreen } from './components/PlayerSelectScreen';
 import { ToastContainer } from './components/ToastContainer';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
+import { isQuestCompleted } from './utils/gameLogic';
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { Download, Upload, RotateCcw, Plus, Settings } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { THEMES } from './utils/themes';
@@ -53,9 +56,21 @@ function GameApp({
     addFaction,
     editFaction,
     deleteFaction,
+    reorderFactions,
     resetAllData,
     importData,
+    importFaction,
   } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = gameState.factions.findIndex(f => f.id === active.id);
+    const newIndex = gameState.factions.findIndex(f => f.id === over.id);
+    reorderFactions(arrayMove(gameState.factions, oldIndex, newIndex));
+  };
 
   const { themeId, setThemeId } = useTheme();
   const { t, i18n } = useTranslation();
@@ -64,6 +79,7 @@ function GameApp({
   const [factionModal, setFactionModal] = useState<FactionModalState | null>(null);
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,9 +100,33 @@ function GameApp({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          importData(event.target?.result as string);
-        };
+        reader.onload = (event) => { importData(event.target?.result as string); };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleExportFaction = (faction: Faction) => {
+    const quests = gameState.quests.filter(q => q.factionId === faction.id);
+    const blob = new Blob([JSON.stringify({ faction, quests }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `faction-${faction.name.toLowerCase()}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportFaction = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => { importFaction(event.target?.result as string); };
         reader.readAsText(file);
       }
     };
@@ -120,8 +160,18 @@ function GameApp({
   const factionQuests = selectedFaction
     ? gameState.quests.filter(q => q.factionId === selectedFaction.id)
     : [];
-  const dailyQuests = factionQuests.filter(q => q.type === 'daily');
-  const weeklyQuests = factionQuests.filter(q => q.type === 'weekly');
+
+  const applyFilter = (quests: Quest[]) => {
+    const sorted = [...quests].sort((a, b) => Number(isQuestCompleted(a)) - Number(isQuestCompleted(b)));
+    if (questFilter === 'incomplete') return sorted.filter(q => !isQuestCompleted(q));
+    if (questFilter === 'complete') return sorted.filter(q => isQuestCompleted(q));
+    return sorted;
+  };
+
+  const dailyQuests = applyFilter(factionQuests.filter(q => q.type === 'daily'));
+  const weeklyQuests = applyFilter(factionQuests.filter(q => q.type === 'weekly'));
+  const monthlyQuests = applyFilter(factionQuests.filter(q => q.type === 'monthly'));
+  const yearlyQuests = applyFilter(factionQuests.filter(q => q.type === 'yearly'));
 
   return (
     <div
@@ -157,6 +207,13 @@ function GameApp({
             >
               <Upload size={14} />
               {t('app.settings.import')}
+            </button>
+            <button
+              onClick={() => { handleImportFaction(); setMenuOpen(false); }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
+            >
+              <Upload size={14} />
+              {t('faction.importFaction')}
             </button>
             <div className="border-t border-gray-700" />
             <div className="px-4 py-2.5">
@@ -220,17 +277,21 @@ function GameApp({
         <div className="flex gap-14 items-start">
           {/* Colonne gauche — Factions (1/3) */}
           <div className="w-1/3 flex-shrink-0 space-y-3">
-            {gameState.factions.map((faction) => (
-              <FactionCard
-                key={faction.id}
-                faction={faction}
-                selected={selectedFaction?.id === faction.id}
-                levelUpTrigger={levelUpTriggers[faction.id] ?? 0}
-                onClick={() => setSelectedFactionId(faction.id)}
-                onEdit={() => setFactionModal({ mode: 'edit', faction })}
-                onDelete={() => deleteFaction(faction.id)}
-              />
-            ))}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={gameState.factions.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                {gameState.factions.map((faction) => (
+                  <FactionCard
+                    key={faction.id}
+                    faction={faction}
+                    selected={selectedFaction?.id === faction.id}
+                    levelUpTrigger={levelUpTriggers[faction.id] ?? 0}
+                    onClick={() => { setSelectedFactionId(faction.id); setQuestFilter('all'); }}
+                    onEdit={() => setFactionModal({ mode: 'edit', faction })}
+                    onDelete={() => deleteFaction(faction.id)}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
             <button
               onClick={() => setFactionModal({ mode: 'create' })}
               className="flex items-center justify-center gap-2 w-full p-3 rounded-xl border border-dashed border-gray-700 hover:border-gray-500 text-gray-600 hover:text-gray-400 transition-all text-sm"
@@ -245,7 +306,7 @@ function GameApp({
             {selectedFaction ? (
               <>
                 {/* En-tête faction */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <span className="text-3xl">{selectedFaction.icon}</span>
                     <div>
@@ -255,57 +316,71 @@ function GameApp({
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setModal({ mode: 'create', defaultFactionId: selectedFaction.id })}
-                    className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
-                  >
-                    <Plus size={15} />
-                    {t('quest.addQuest')}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleExportFaction(selectedFaction)}
+                      className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
+                      title={t('faction.exportFaction')}
+                    >
+                      <Download size={14} />
+                    </button>
+                    <button
+                      onClick={() => setModal({ mode: 'create', defaultFactionId: selectedFaction.id })}
+                      className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
+                    >
+                      <Plus size={15} />
+                      {t('quest.addQuest')}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filtres */}
+                <div className="flex gap-1.5 mb-6">
+                  {(['all', 'incomplete', 'complete'] as const).map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setQuestFilter(f)}
+                      className="px-3 py-1 text-xs rounded-full border transition-colors"
+                      style={{
+                        backgroundColor: questFilter === f ? selectedFaction.color + '22' : 'transparent',
+                        borderColor: questFilter === f ? selectedFaction.color + '88' : '#374151',
+                        color: questFilter === f ? selectedFaction.color : '#6b7280',
+                      }}
+                    >
+                      {t(`quest.filter.${f === 'all' ? 'all' : f === 'incomplete' ? 'todo' : 'done'}`)}
+                    </button>
+                  ))}
                 </div>
 
                 {factionQuests.length === 0 && (
                   <p className="text-gray-600 text-sm italic">{t('quest.noQuests')}</p>
                 )}
 
-                {dailyQuests.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t('quest.sectionDaily')}</h3>
-                    <div className="space-y-3">
-                      {dailyQuests.map((quest) => (
-                        <QuestCard
-                          key={quest.id}
-                          quest={quest}
-                          factionColor={selectedFaction.color}
-                          onComplete={() => completeQuest(quest.id)}
-                          onUncomplete={() => uncompleteQuest(quest.id)}
-                          onIncrement={() => incrementQuestProgress(quest.id)}
-                          onEdit={() => setModal({ mode: 'edit', quest })}
-                          onDelete={() => deleteQuest(quest.id)}
-                        />
-                      ))}
+                {([
+                  { quests: dailyQuests, label: t('quest.sectionDaily') },
+                  { quests: weeklyQuests, label: t('quest.sectionWeekly') },
+                  { quests: monthlyQuests, label: t('quest.sectionMonthly') },
+                  { quests: yearlyQuests, label: t('quest.sectionYearly') },
+                ] as const).map(({ quests, label }) =>
+                  quests.length > 0 ? (
+                    <div key={label} className="mb-8">
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{label}</h3>
+                      <div className="space-y-3">
+                        {quests.map((quest) => (
+                          <QuestCard
+                            key={quest.id}
+                            quest={quest}
+                            factionColor={selectedFaction.color}
+                            onComplete={() => completeQuest(quest.id)}
+                            onUncomplete={() => uncompleteQuest(quest.id)}
+                            onIncrement={() => incrementQuestProgress(quest.id)}
+                            onEdit={() => setModal({ mode: 'edit', quest })}
+                            onDelete={() => deleteQuest(quest.id)}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {weeklyQuests.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">{t('quest.sectionWeekly')}</h3>
-                    <div className="space-y-6">
-                      {weeklyQuests.map((quest) => (
-                        <QuestCard
-                          key={quest.id}
-                          quest={quest}
-                          factionColor={selectedFaction.color}
-                          onComplete={() => completeQuest(quest.id)}
-                          onUncomplete={() => uncompleteQuest(quest.id)}
-                          onIncrement={() => incrementQuestProgress(quest.id)}
-                          onEdit={() => setModal({ mode: 'edit', quest })}
-                          onDelete={() => deleteQuest(quest.id)}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  ) : null
                 )}
               </>
             ) : (

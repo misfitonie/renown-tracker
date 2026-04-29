@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { GameState, Quest, FactionId } from '../types';
+import { GameState, Quest, Faction, FactionId } from '../types';
 import { getInitialGameState } from '../utils/initialData';
-import { shouldResetDailies, shouldResetWeeklies, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
+import { shouldResetDailies, shouldResetWeeklies, shouldResetMonthlies, shouldResetYearlies, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
@@ -53,6 +53,44 @@ export function useGameState(
           };
         }),
         lastWeeklyReset: new Date().toISOString(),
+      };
+      needsUpdate = true;
+    }
+
+    // Reset monthlies si nécessaire
+    if (shouldResetMonthlies(gameState.lastMonthlyReset ?? new Date(0).toISOString())) {
+      updatedState = {
+        ...updatedState,
+        quests: updatedState.quests.map(quest => {
+          if (quest.type !== 'monthly') return quest;
+          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+          return {
+            ...quest,
+            completed: false,
+            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
+            streakCount: streakBroken ? 0 : quest.streakCount,
+          };
+        }),
+        lastMonthlyReset: new Date().toISOString(),
+      };
+      needsUpdate = true;
+    }
+
+    // Reset yearlies si nécessaire
+    if (shouldResetYearlies(gameState.lastYearlyReset ?? new Date(0).toISOString())) {
+      updatedState = {
+        ...updatedState,
+        quests: updatedState.quests.map(quest => {
+          if (quest.type !== 'yearly') return quest;
+          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+          return {
+            ...quest,
+            completed: false,
+            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
+            streakCount: streakBroken ? 0 : quest.streakCount,
+          };
+        }),
+        lastYearlyReset: new Date().toISOString(),
       };
       needsUpdate = true;
     }
@@ -432,6 +470,33 @@ export function useGameState(
     }
   };
 
+  // Import d'une faction exportée (génère de nouveaux IDs pour éviter les conflits)
+  const importFaction = (jsonString: string) => {
+    try {
+      const { faction, quests } = JSON.parse(jsonString);
+      const newFactionId = `faction-${Date.now()}`;
+      const newFaction = { ...faction, id: newFactionId };
+      const newQuests = (quests as Quest[]).map((q, i) => ({
+        ...q,
+        id: `quest-${Date.now()}-${i}`,
+        factionId: newFactionId,
+      }));
+      setGameState(prev => ({
+        ...prev,
+        factions: [...prev.factions, newFaction],
+        quests: [...prev.quests, ...newQuests],
+      }));
+      showToast(i18n.t('toast.factionImportSuccess'), 'success');
+    } catch (e) {
+      showToast(i18n.t('toast.factionImportError'), 'error');
+      console.error(e);
+    }
+  };
+
+  const reorderFactions = (newFactions: Faction[]) => {
+    setGameState(prev => ({ ...prev, factions: newFactions }));
+  };
+
   return {
     gameState,
     completeQuest,
@@ -443,8 +508,10 @@ export function useGameState(
     addFaction,
     editFaction,
     deleteFaction,
+    reorderFactions,
     resetAllData,
     exportData,
     importData,
+    importFaction,
   };
 }

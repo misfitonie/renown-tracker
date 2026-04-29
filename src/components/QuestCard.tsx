@@ -1,4 +1,5 @@
-import { Check, Plus, Gem, Pencil, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, Plus, Gem, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Quest } from '../types';
 import { isQuestCompleted } from '../utils/gameLogic';
@@ -13,12 +14,27 @@ interface QuestCardProps {
   onDelete: () => void;
 }
 
+const TYPE_BADGE: Record<string, { key: string; color: string }> = {
+  weekly:  { key: 'quest.weeklyBadge',  color: 'bg-accent-purple text-white' },
+  monthly: { key: 'quest.monthlyBadge', color: 'bg-orange-500/80 text-white' },
+  yearly:  { key: 'quest.yearlyBadge',  color: 'bg-yellow-500/80 text-bg-dark' },
+};
+
 export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onIncrement, onEdit, onDelete }: QuestCardProps) {
   const { t } = useTranslation();
   const completed = isQuestCompleted(quest);
   const progressPercentage = quest.completionType === 'progress' && quest.target
     ? ((quest.current || 0) / quest.target) * 100
     : 0;
+
+  const [isCollapsed, setIsCollapsed] = useState(completed);
+
+  // Auto-repli à la complétion
+  useEffect(() => {
+    if (completed) setIsCollapsed(true);
+  }, [completed]);
+
+  const badge = TYPE_BADGE[quest.type];
 
   return (
     <div
@@ -27,68 +43,40 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
       }`}
       style={{ borderLeftColor: completed ? '#666' : factionColor }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold text-white">{quest.title}</h4>
-            {quest.type === 'weekly' && (
-              <span className="text-xs bg-accent-purple px-2 py-0.5 rounded text-white">
-                {t('quest.weeklyBadge')}
-              </span>
-            )}
-            {quest.followStreak && (
-              <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded flex items-center gap-1">
-                🔥 {quest.streakCount ?? 0}
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-400 mb-3">{quest.description}</p>
-
-          {/* Barre de progression */}
-          {quest.completionType === 'progress' && (
-            <div className="space-y-1 mb-3">
-              <div className="flex justify-between text-xs text-gray-400">
-                <span>{t('quest.progressLabel')}</span>
-                <span>{quest.current || 0} / {quest.target}</span>
-              </div>
-              <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{ width: `${progressPercentage}%`, backgroundColor: factionColor }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Récompenses */}
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-accent-gold">+{quest.xpReward} XP</span>
-            <span className="flex items-center gap-1 text-accent-gold">
-              <Gem size={14} />
-              +{quest.currencyReward}
+      {/* Ligne principale (toujours visible) */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <h4 className="font-semibold text-white truncate">{quest.title}</h4>
+          {badge && (
+            <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${badge.color}`}>
+              {t(badge.key)}
             </span>
-          </div>
+          )}
+          {quest.followStreak && (
+            <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
+              🔥 {quest.streakCount ?? 0}
+            </span>
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {/* Boutons edit/delete (visibles au hover) */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Boutons edit/delete */}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={onEdit}
-              className="text-gray-500 hover:text-white p-1.5 rounded transition-colors"
-              title={t('common.edit')}
-            >
+            <button onClick={onEdit} className="text-gray-500 hover:text-white p-1.5 rounded transition-colors" title={t('common.edit')}>
               <Pencil size={15} />
             </button>
-            <button
-              onClick={onDelete}
-              className="text-gray-500 hover:text-red-400 p-1.5 rounded transition-colors"
-              title={t('common.delete')}
-            >
+            <button onClick={onDelete} className="text-gray-500 hover:text-red-400 p-1.5 rounded transition-colors" title={t('common.delete')}>
               <Trash2 size={15} />
             </button>
           </div>
+
+          {/* Chevron collapse */}
+          <button
+            onClick={() => setIsCollapsed(c => !c)}
+            className="text-gray-600 hover:text-gray-400 p-1.5 rounded transition-colors"
+          >
+            <ChevronDown size={14} className={`transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
+          </button>
 
           {/* Bouton de complétion */}
           {completed ? (
@@ -117,6 +105,38 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
           )}
         </div>
       </div>
+
+      {/* Corps (masqué quand replié) */}
+      {!isCollapsed && (
+        <div className="mt-3">
+          {quest.description && (
+            <p className="text-sm text-gray-400 mb-3">{quest.description}</p>
+          )}
+
+          {quest.completionType === 'progress' && (
+            <div className="space-y-1 mb-3">
+              <div className="flex justify-between text-xs text-gray-400">
+                <span>{t('quest.progressLabel')}</span>
+                <span>{quest.current || 0} / {quest.target}</span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${progressPercentage}%`, backgroundColor: factionColor }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-accent-gold">+{quest.xpReward} XP</span>
+            <span className="flex items-center gap-1 text-accent-gold">
+              <Gem size={14} />
+              +{quest.currencyReward}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -33,6 +33,8 @@
     "emptyMessage": "Créez votre première faction pour commencer.",
     "headerLevel": "Niveau {{level}} · {{current}} / {{max}} XP",
     "deleteConfirm": "Supprimer cette faction et toutes ses quêtes définitivement ?",
+    "exportFaction": "Exporter la faction",
+    "importFaction": "Importer une faction",
     "modal": {
       "titleEdit": "Modifier la faction",
       "titleCreate": "Nouvelle faction",
@@ -47,6 +49,8 @@
   "quest": {
     "sectionDaily": "Journalières",
     "sectionWeekly": "Hebdomadaires",
+    "sectionMonthly": "Mensuelles",
+    "sectionYearly": "Annuelles",
     "addQuest": "Ajouter une quête",
     "noQuests": "Aucune quête pour cette faction.",
     "progressLabel": "Progression",
@@ -56,6 +60,13 @@
       "increment": "Incrémenter"
     },
     "weeklyBadge": "Hebdo",
+    "monthlyBadge": "Mensuel",
+    "yearlyBadge": "Annuel",
+    "filter": {
+      "all": "Toutes",
+      "todo": "À faire",
+      "done": "Complétées"
+    },
     "deleteConfirm": "Supprimer cette quête définitivement ?",
     "modal": {
       "titleEdit": "Modifier la quête",
@@ -68,6 +79,8 @@
       "frequencyLabel": "Fréquence",
       "daily": "Journalière",
       "weekly": "Hebdomadaire",
+      "monthly": "Mensuelle",
+      "yearly": "Annuelle",
       "completionTypeLabel": "Type de complétion",
       "typeBoolean": "Oui / Non (valider d'un clic)",
       "typeProgress": "Progression (compteur jusqu'à une cible)",
@@ -87,6 +100,8 @@
     "factionLevelUp": "🎉 {{name}} niveau {{level}} !",
     "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",
     "importSuccess": "Données importées avec succès !",
-    "importError": "Erreur lors de l'import des données"
+    "importError": "Erreur lors de l'import des données",
+    "factionImportSuccess": "Faction importée avec succès !",
+    "factionImportError": "Erreur lors de l'import de la faction"
   }
 }

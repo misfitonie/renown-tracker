@@ -33,6 +33,8 @@
     "emptyMessage": "Create your first faction to get started.",
     "headerLevel": "Level {{level}} · {{current}} / {{max}} XP",
     "deleteConfirm": "Delete this faction and all its quests permanently?",
+    "exportFaction": "Export faction",
+    "importFaction": "Import faction",
     "modal": {
       "titleEdit": "Edit faction",
       "titleCreate": "New faction",
@@ -47,6 +49,8 @@
   "quest": {
     "sectionDaily": "Daily",
     "sectionWeekly": "Weekly",
+    "sectionMonthly": "Monthly",
+    "sectionYearly": "Yearly",
     "addQuest": "Add quest",
     "noQuests": "No quests for this faction.",
     "progressLabel": "Progress",
@@ -56,6 +60,13 @@
       "increment": "Increment"
     },
     "weeklyBadge": "Weekly",
+    "monthlyBadge": "Monthly",
+    "yearlyBadge": "Yearly",
+    "filter": {
+      "all": "All",
+      "todo": "To do",
+      "done": "Done"
+    },
     "deleteConfirm": "Delete this quest permanently?",
     "modal": {
       "titleEdit": "Edit quest",
@@ -68,6 +79,8 @@
       "frequencyLabel": "Frequency",
       "daily": "Daily",
       "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
       "completionTypeLabel": "Completion type",
       "typeBoolean": "Yes / No (one-click validation)",
       "typeProgress": "Progress (counter up to a target)",
@@ -87,6 +100,8 @@
     "factionLevelUp": "🎉 {{name}} level {{level}}!",
     "weeklyCompleted": "✅ Weekly quest \"{{title}}\" completed!",
     "importSuccess": "Data imported successfully!",
-    "importError": "Error importing data"
+    "importError": "Error importing data",
+    "factionImportSuccess": "Faction imported successfully!",
+    "factionImportError": "Error importing faction"
   }
 }

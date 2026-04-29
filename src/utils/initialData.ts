@@ -164,5 +164,7 @@ export function getInitialGameState(): GameState {
     playerLevel: 0,
     lastDailyReset: now,
     lastWeeklyReset: now,
+    lastMonthlyReset: now,
+    lastYearlyReset: now,
   };
 }
