@@ -10,6 +10,7 @@ export interface QuestFormData {
   type: QuestType;
   completionType: CompletionType;
   target: number;
+  startingValue: number;
   xpReward: number;
   currencyReward: number;
   followStreak: boolean;
@@ -34,6 +35,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
     type: initialData?.type ?? 'daily',
     completionType: initialData?.completionType ?? 'boolean',
     target: initialData?.target ?? 5,
+    startingValue: initialData?.startingValue ?? 0,
     xpReward: initialData?.xpReward ?? 50,
     currencyReward: initialData?.currencyReward ?? 10,
     followStreak: initialData?.followStreak ?? false,
@@ -133,17 +135,30 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
             </select>
           </div>
 
-          {/* Objectif (progress uniquement) */}
+          {/* Objectif + valeur de départ (progress uniquement) */}
           {form.completionType === 'progress' && (
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.targetLabel')}</label>
-              <input
-                type="number"
-                min={1}
-                value={form.target}
-                onChange={e => setForm(f => ({ ...f, target: Math.max(1, parseInt(e.target.value) || 1) }))}
-                className={inputClass}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.targetLabel')}</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.target}
+                  onChange={e => setForm(f => ({ ...f, target: Math.max(1, parseInt(e.target.value) || 1), startingValue: Math.min(f.startingValue, Math.max(1, parseInt(e.target.value) || 1) - 1) }))}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">{t('quest.modal.startingValueLabel')}</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={form.target - 1}
+                  value={form.startingValue}
+                  onChange={e => setForm(f => ({ ...f, startingValue: Math.min(Math.max(0, parseInt(e.target.value) || 0), f.target - 1) }))}
+                  className={inputClass}
+                />
+              </div>
             </div>
           )}
 

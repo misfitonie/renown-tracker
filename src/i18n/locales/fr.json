@@ -72,6 +72,7 @@
       "typeBoolean": "Oui / Non (valider d'un clic)",
       "typeProgress": "Progression (compteur jusqu'à une cible)",
       "targetLabel": "Objectif",
+      "startingValueLabel": "Départ",
       "streakLabel": "Suivre le streak",
       "streakDescription": "Compteur de jours/semaines consécutifs",
       "linkWeeklyLabel": "Lier à une quête hebdo",

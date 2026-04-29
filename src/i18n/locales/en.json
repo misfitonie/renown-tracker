@@ -72,6 +72,7 @@
       "typeBoolean": "Yes / No (one-click validation)",
       "typeProgress": "Progress (counter up to a target)",
       "targetLabel": "Target",
+      "startingValueLabel": "Starting at",
       "streakLabel": "Track streak",
       "streakDescription": "Consecutive days/weeks counter",
       "linkWeeklyLabel": "Link to a weekly quest",

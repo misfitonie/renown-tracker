@@ -16,8 +16,9 @@ export interface Quest {
   // Système de progression flexible
   completionType: CompletionType;
   completed: boolean;
-  current?: number;  // si progress: ex 2
-  target?: number;   // si progress: ex 5
+  current?: number;       // si progress: ex 2
+  target?: number;        // si progress: ex 5
+  startingValue?: number; // si progress: valeur de départ (défaut 0)
 
   // Streak
   followStreak?: boolean;

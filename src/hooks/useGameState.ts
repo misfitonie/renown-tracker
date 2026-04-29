@@ -29,7 +29,7 @@ export function useGameState(
           return {
             ...quest,
             completed: false,
-            current: quest.completionType === 'progress' ? 0 : undefined,
+            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
             streakCount: streakBroken ? 0 : quest.streakCount,
           };
         }),
@@ -48,7 +48,7 @@ export function useGameState(
           return {
             ...quest,
             completed: false,
-            current: quest.completionType === 'progress' ? 0 : undefined,
+            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
             streakCount: streakBroken ? 0 : quest.streakCount,
           };
         }),
@@ -151,7 +151,7 @@ export function useGameState(
     const newCurrent = (quest.current || 0) + 1;
     const isNowCompleted = quest.target !== undefined && newCurrent >= quest.target;
 
-    const updatedQuests = gameState.quests.map(q =>
+    let finalQuests = gameState.quests.map(q =>
       q.id === questId
         ? {
             ...q,
@@ -162,37 +162,76 @@ export function useGameState(
         : q
     );
 
+    let finalFactions = [...gameState.factions];
+    let finalCurrency = gameState.currency;
+    let finalPlayerUpdate = { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
+
+    // Incrémenter la weekly liée de +1 à chaque clic
+    if (quest.linkedWeeklyQuestId) {
+      const weekly = finalQuests.find(q => q.id === quest.linkedWeeklyQuestId);
+      if (weekly && !isQuestCompleted(weekly) && weekly.completionType === 'progress') {
+        const weeklyNewCurrent = (weekly.current ?? 0) + 1;
+        const weeklyNowComplete = weekly.target !== undefined && weeklyNewCurrent >= weekly.target;
+
+        finalQuests = finalQuests.map(q =>
+          q.id === weekly.id
+            ? {
+                ...q,
+                current: Math.min(weeklyNewCurrent, weekly.target ?? weeklyNewCurrent),
+                completed: weeklyNowComplete,
+                streakCount: weeklyNowComplete && q.followStreak ? (q.streakCount ?? 0) + 1 : q.streakCount,
+              }
+            : q
+        );
+
+        if (weeklyNowComplete) {
+          const weeklyFactionIdx = finalFactions.findIndex(f => f.id === weekly.factionId);
+          if (weeklyFactionIdx !== -1) {
+            const { faction: wFaction, leveledUp: wLeveledUp } = addXPToFaction(
+              finalFactions[weeklyFactionIdx],
+              weekly.xpReward
+            );
+            finalFactions = [...finalFactions];
+            finalFactions[weeklyFactionIdx] = wFaction;
+            finalCurrency += weekly.currencyReward;
+
+            if (wLeveledUp) {
+              finalPlayerUpdate = addPlayerXP(finalPlayerUpdate.playerXP, finalPlayerUpdate.playerLevel, getXPForNextLevel(wFaction.renownLevel - 1));
+              showToast(i18n.t('toast.factionLevelUp', { name: wFaction.name, level: wFaction.renownLevel }), 'success');
+              onFactionLevelUp?.(weekly.factionId);
+            }
+          }
+          showToast(i18n.t('toast.weeklyCompleted', { title: weekly.title }), 'success');
+        }
+      }
+    }
+
     if (isNowCompleted) {
-      const factionIndex = gameState.factions.findIndex(f => f.id === quest.factionId);
-      if (factionIndex === -1) { setGameState({ ...gameState, quests: updatedQuests }); return; }
+      const factionIndex = finalFactions.findIndex(f => f.id === quest.factionId);
+      if (factionIndex === -1) { setGameState({ ...gameState, quests: finalQuests }); return; }
 
       const { faction: updatedFaction, leveledUp } = addXPToFaction(
-        gameState.factions[factionIndex],
+        finalFactions[factionIndex],
         quest.xpReward
       );
-
-      const updatedFactions = [...gameState.factions];
-      updatedFactions[factionIndex] = updatedFaction;
-
-      const playerUpdate = leveledUp
-        ? addPlayerXP(gameState.playerXP, gameState.playerLevel, getXPForNextLevel(updatedFaction.renownLevel - 1))
-        : { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
-
-      setGameState({
-        ...gameState,
-        quests: updatedQuests,
-        factions: updatedFactions,
-        currency: gameState.currency + quest.currencyReward,
-        ...playerUpdate,
-      });
+      finalFactions = [...finalFactions];
+      finalFactions[factionIndex] = updatedFaction;
+      finalCurrency += quest.currencyReward;
 
       if (leveledUp) {
+        finalPlayerUpdate = addPlayerXP(finalPlayerUpdate.playerXP, finalPlayerUpdate.playerLevel, getXPForNextLevel(updatedFaction.renownLevel - 1));
         showToast(i18n.t('toast.factionLevelUp', { name: updatedFaction.name, level: updatedFaction.renownLevel }), 'success');
         onFactionLevelUp?.(quest.factionId);
       }
-    } else {
-      setGameState({ ...gameState, quests: updatedQuests });
     }
+
+    setGameState({
+      ...gameState,
+      quests: finalQuests,
+      factions: finalFactions,
+      currency: finalCurrency,
+      ...finalPlayerUpdate,
+    });
   };
 
   // Décocher une quête (annule XP, currency et régresse le niveau si nécessaire)
@@ -200,30 +239,29 @@ export function useGameState(
     const quest = gameState.quests.find(q => q.id === questId);
     if (!quest || !isQuestCompleted(quest)) return;
 
-    const updatedQuests = gameState.quests.map(q =>
+    let finalQuests = gameState.quests.map(q =>
       q.id === questId
         ? {
             ...q,
             completed: false,
-            current: q.completionType === 'progress' ? 0 : undefined,
+            current: q.completionType === 'progress' ? (q.startingValue ?? 0) : undefined,
             streakCount: q.followStreak ? Math.max(0, (q.streakCount ?? 1) - 1) : q.streakCount,
           }
         : q
     );
 
     const factionIndex = gameState.factions.findIndex(f => f.id === quest.factionId);
-    const updatedFactions = [...gameState.factions];
-
+    let finalFactions = [...gameState.factions];
+    let finalCurrency = Math.max(0, gameState.currency - quest.currencyReward);
     let playerUpdate = { playerXP: gameState.playerXP, playerLevel: gameState.playerLevel };
 
     if (factionIndex !== -1) {
       const { faction: updatedFaction, levelsLost } = removeXPFromFaction(
-        updatedFactions[factionIndex],
+        finalFactions[factionIndex],
         quest.xpReward
       );
-      updatedFactions[factionIndex] = updatedFaction;
+      finalFactions[factionIndex] = updatedFaction;
 
-      // Reverse player XP pour chaque niveau de faction perdu
       if (levelsLost > 0) {
         let xpToReverse = 0;
         for (let l = updatedFaction.renownLevel; l < updatedFaction.renownLevel + levelsLost; l++) {
@@ -233,11 +271,54 @@ export function useGameState(
       }
     }
 
+    // Décrémenter la quête hebdo liée
+    if (quest.linkedWeeklyQuestId) {
+      const weekly = finalQuests.find(q => q.id === quest.linkedWeeklyQuestId);
+      if (weekly && weekly.completionType === 'progress') {
+        const decrement = quest.completionType === 'progress' ? (quest.target ?? 1) : 1;
+        const wasCompleted = isQuestCompleted(weekly);
+        const weeklyNewCurrent = Math.max(0, (weekly.current ?? 0) - decrement);
+
+        finalQuests = finalQuests.map(q =>
+          q.id === weekly.id
+            ? {
+                ...q,
+                current: weeklyNewCurrent,
+                completed: false,
+                streakCount: wasCompleted && q.followStreak ? Math.max(0, (q.streakCount ?? 1) - 1) : q.streakCount,
+              }
+            : q
+        );
+
+        // Reverser l'XP et currency de la weekly si elle était complétée
+        if (wasCompleted) {
+          const weeklyFactionIdx = finalFactions.findIndex(f => f.id === weekly.factionId);
+          if (weeklyFactionIdx !== -1) {
+            const { faction: wFaction, levelsLost: wLevelsLost } = removeXPFromFaction(
+              finalFactions[weeklyFactionIdx],
+              weekly.xpReward
+            );
+            finalFactions = [...finalFactions];
+            finalFactions[weeklyFactionIdx] = wFaction;
+            finalCurrency = Math.max(0, finalCurrency - weekly.currencyReward);
+
+            if (wLevelsLost > 0) {
+              let xpToReverse = 0;
+              for (let l = wFaction.renownLevel; l < wFaction.renownLevel + wLevelsLost; l++) {
+                xpToReverse += getXPForNextLevel(l);
+              }
+              playerUpdate = removePlayerXP(playerUpdate.playerXP, playerUpdate.playerLevel, xpToReverse);
+            }
+          }
+        }
+      }
+    }
+
     setGameState({
       ...gameState,
-      quests: updatedQuests,
-      factions: updatedFactions,
-      currency: Math.max(0, gameState.currency - quest.currencyReward),
+      quests: finalQuests,
+      factions: finalFactions,
+      currency: finalCurrency,
       ...playerUpdate,
     });
   };
@@ -248,8 +329,9 @@ export function useGameState(
       ...data,
       id: `quest-${Date.now()}`,
       completed: false,
-      current: data.completionType === 'progress' ? 0 : undefined,
+      current: data.completionType === 'progress' ? (data.startingValue ?? 0) : undefined,
       target: data.completionType === 'progress' ? data.target : undefined,
+      startingValue: data.completionType === 'progress' ? (data.startingValue ?? 0) : undefined,
       streakCount: 0,
     };
     setGameState(prev => ({ ...prev, quests: [...prev.quests, newQuest] }));
@@ -265,7 +347,8 @@ export function useGameState(
               ...q,
               ...data,
               target: data.completionType === 'progress' ? data.target : undefined,
-              current: data.completionType === 'progress' ? (q.current ?? 0) : undefined,
+              startingValue: data.completionType === 'progress' ? (data.startingValue ?? 0) : undefined,
+              current: data.completionType === 'progress' ? (data.startingValue ?? 0) : undefined,
               completed: false,
             }
           : q

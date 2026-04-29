@@ -245,7 +245,6 @@ Le reset se déclenche au montage de `useGameState`, dans un `useEffect([], [])`
 - [x] Lien quête journalière → hebdo (auto-incrément)
 - [x] Dévalidation avec régression de niveau
 - [x] Internationalisation FR/EN
-- [ ] Modales de confirmation custom (remplacer les `confirm()` natifs)
 - [ ] Responsive mobile
 - [ ] Historique des actions
 - [ ] Filtres sur les quêtes (incomplètes, par faction...)
