@@ -57,7 +57,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-bg-card border border-gray-700 rounded-xl p-6 w-full max-w-md shadow-2xl">
+      <div className="relative bg-bg-card border border-gray-700 rounded-xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-title text-accent-gold">
             {initialData ? t('quest.modal.titleEdit') : t('quest.modal.titleCreate')}

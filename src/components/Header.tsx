@@ -56,54 +56,54 @@ export function Header({ currency, player, playerXP, playerLevel, onSwitchPlayer
   }, [playerXP, playerLevel, xpPercent]);
 
   return (
-    <header className="mb-24">
-      <div className="flex justify-center mb-10">
-      <button
-        onClick={onSwitchPlayer}
-        className="flex items-center gap-6 px-8 py-5 rounded-2xl border transition-all hover:brightness-110"
-        style={{
-          backgroundColor: 'var(--theme-card-bg)',
-          borderColor: `${player.color}55`,
-          boxShadow: `0 0 24px ${player.color}18`,
-        }}
-        title={t('player.switchProfile')}
-      >
-        <span className="text-5xl leading-none">{player.emoji}</span>
-
-        <div className="min-w-[260px] text-left">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-title text-white text-2xl leading-none">{player.name}</span>
-            <span className="text-base font-bold ml-4" style={{ color: player.color }}>
-              {t('common.level')} {playerLevel}
-            </span>
-          </div>
-          <div className="w-full bg-gray-700/40 rounded-full h-2 overflow-hidden mb-1.5">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${displayPercent}%`,
-                backgroundColor: player.color,
-                transition: noTransition ? 'none' : 'width 0.5s ease',
-              }}
-            />
-          </div>
-          <p className="text-sm text-gray-500">
-            {playerXP} / {xpToNext} {t('common.xp')}
-          </p>
-        </div>
-
-        <div
-          className="flex items-center gap-2 pl-6 border-l"
-          style={{ borderColor: 'var(--theme-outline)' }}
+    <header className="mb-6 md:mb-24">
+      <div className="flex justify-center mb-4 md:mb-10">
+        <button
+          onClick={onSwitchPlayer}
+          className="flex items-center gap-3 md:gap-6 px-4 md:px-8 py-3 md:py-5 rounded-2xl border transition-all hover:brightness-110 w-full md:w-auto"
+          style={{
+            backgroundColor: 'var(--theme-card-bg)',
+            borderColor: `${player.color}55`,
+            boxShadow: `0 0 24px ${player.color}18`,
+          }}
+          title={t('player.switchProfile')}
         >
-          <Gem size={20} className="text-accent-gold" />
-          <span className="font-bold text-2xl text-accent-gold">{currency}</span>
-        </div>
-      </button>
+          <span className="text-4xl md:text-5xl leading-none flex-shrink-0">{player.emoji}</span>
+
+          <div className="flex-1 min-w-0 md:min-w-[260px] text-left">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-title text-white text-xl md:text-2xl leading-none truncate">{player.name}</span>
+              <span className="text-sm md:text-base font-bold ml-3 flex-shrink-0" style={{ color: player.color }}>
+                {t('common.level')} {playerLevel}
+              </span>
+            </div>
+            <div className="w-full bg-gray-700/40 rounded-full h-2 overflow-hidden mb-1.5">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${displayPercent}%`,
+                  backgroundColor: player.color,
+                  transition: noTransition ? 'none' : 'width 0.5s ease',
+                }}
+              />
+            </div>
+            <p className="text-xs md:text-sm text-gray-500">
+              {playerXP} / {xpToNext} {t('common.xp')}
+            </p>
+          </div>
+
+          <div
+            className="flex items-center gap-2 pl-3 md:pl-6 border-l flex-shrink-0"
+            style={{ borderColor: 'var(--theme-outline)' }}
+          >
+            <Gem size={18} className="text-accent-gold" />
+            <span className="font-bold text-xl md:text-2xl text-accent-gold">{currency}</span>
+          </div>
+        </button>
       </div>
 
       {/* Séparateur RPG */}
-      <div className="relative flex items-center gap-4 px-8">
+      <div className="relative flex items-center gap-4 px-4 md:px-8">
         <div className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${player.color}88)` }} />
         <div className="flex items-center gap-1.5">
           <div className="w-1.5 h-1.5 rotate-45" style={{ backgroundColor: player.color }} />

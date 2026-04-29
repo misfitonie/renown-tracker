@@ -18,7 +18,8 @@
     },
     "confirm": {
       "reset": "Are you sure you want to reset all your data?"
-    }
+    },
+    "backToFactions": "Factions"
   },
   "player": {
     "switchProfile": "Switch profile",

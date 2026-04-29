@@ -18,7 +18,8 @@
     },
     "confirm": {
       "reset": "Êtes-vous sûr de vouloir réinitialiser toutes vos données ?"
-    }
+    },
+    "backToFactions": "Factions"
   },
   "player": {
     "switchProfile": "Changer de profil",

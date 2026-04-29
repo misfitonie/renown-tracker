@@ -14,7 +14,7 @@ import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { isQuestCompleted } from './utils/gameLogic';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Download, Upload, RotateCcw, Plus, Settings } from 'lucide-react';
+import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { THEMES } from './utils/themes';
 
@@ -80,6 +80,7 @@ function GameApp({
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
+  const [mobileView, setMobileView] = useState<'factions' | 'quests'>('factions');
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -265,7 +266,7 @@ function GameApp({
         )}
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+      <div className="relative z-10 container mx-auto px-4 py-4 md:py-8 max-w-7xl">
         <Header
           currency={gameState.currency}
           player={player}
@@ -274,9 +275,9 @@ function GameApp({
           onSwitchPlayer={onSwitchPlayer}
         />
 
-        <div className="flex gap-14 items-start">
-          {/* Colonne gauche — Factions (1/3) */}
-          <div className="w-1/3 flex-shrink-0 space-y-3">
+        <div className="flex flex-col md:flex-row md:gap-14 items-start">
+          {/* Colonne gauche — Factions */}
+          <div className={`w-full md:w-1/3 md:flex-shrink-0 space-y-3 ${mobileView === 'quests' ? 'hidden md:block' : ''}`}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={gameState.factions.map(f => f.id)} strategy={verticalListSortingStrategy}>
                 {gameState.factions.map((faction) => (
@@ -285,7 +286,7 @@ function GameApp({
                     faction={faction}
                     selected={selectedFaction?.id === faction.id}
                     levelUpTrigger={levelUpTriggers[faction.id] ?? 0}
-                    onClick={() => { setSelectedFactionId(faction.id); setQuestFilter('all'); }}
+                    onClick={() => { setSelectedFactionId(faction.id); setQuestFilter('all'); setMobileView('quests'); }}
                     onEdit={() => setFactionModal({ mode: 'edit', faction })}
                     onDelete={() => deleteFaction(faction.id)}
                   />
@@ -301,10 +302,19 @@ function GameApp({
             </button>
           </div>
 
-          {/* Colonne droite — Quêtes (2/3) */}
-          <div className="flex-1 min-w-0">
+          {/* Colonne droite — Quêtes */}
+          <div className={`w-full md:flex-1 min-w-0 ${mobileView === 'factions' ? 'hidden md:block' : ''}`}>
             {selectedFaction ? (
               <>
+                {/* Bouton retour (mobile uniquement) */}
+                <button
+                  className="md:hidden flex items-center gap-1 text-sm text-gray-400 hover:text-white mb-4 transition-colors"
+                  onClick={() => setMobileView('factions')}
+                >
+                  <ChevronLeft size={16} />
+                  {t('app.backToFactions')}
+                </button>
+
                 {/* En-tête faction */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -431,28 +441,6 @@ function GameApp({
   );
 }
 
-function MobileGuard({ children }: { children: React.ReactNode }) {
-  const { t } = useTranslation();
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
-
-  if (!isMobile) return <>{children}</>;
-
-  return (
-    <div className="min-h-screen bg-bg-dark flex items-center justify-center p-6">
-      <div className="bg-bg-card border border-gray-700 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
-        <div className="text-5xl mb-4">🖥️</div>
-        <h1 className="font-title text-2xl text-accent-gold mb-3">{t('mobile.title')}</h1>
-        <p className="text-gray-400 text-sm leading-relaxed">{t('mobile.message')}</p>
-      </div>
-    </div>
-  );
-}
 
 function App() {
   const {
@@ -503,15 +491,13 @@ function App() {
   }
 
   return (
-    <MobileGuard>
-      <GameApp
-        key={activePlayer.id}
-        player={activePlayer}
-        onUpdateGameState={updateActiveGameState}
-        onSwitchPlayer={() => setShowSelectScreen(true)}
-        onExportPlayer={() => exportPlayer(activePlayer.id)}
-      />
-    </MobileGuard>
+    <GameApp
+      key={activePlayer.id}
+      player={activePlayer}
+      onUpdateGameState={updateActiveGameState}
+      onSwitchPlayer={() => setShowSelectScreen(true)}
+      onExportPlayer={() => exportPlayer(activePlayer.id)}
+    />
   );
 }
 
