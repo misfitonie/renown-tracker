@@ -22,6 +22,7 @@ L'inspiration vient du système de renommées de World of Warcraft — progresse
 - **i18next + react-i18next** — internationalisation FR/EN
 - **localStorage** — persistance locale, pas de backend
 - **Vercel** — déploiement, avec une preview par PR
+- **Vitest + ESLint + GitHub Actions** — tests, lint et CI
 
 ---
 
@@ -36,6 +37,13 @@ Build de production :
 
 ```bash
 npm run build
+```
+
+Vérifications (lancées aussi par la CI GitHub Actions sur chaque PR) :
+
+```bash
+npm run lint
+npm test        # tests unitaires Vitest de gameLogic
 ```
 
 ---
@@ -57,6 +65,7 @@ src/
 │   ├── IconImage.tsx          # Affiche l'image importée, sinon l'emoji
 │   └── ToastContainer.tsx     # Notifications
 ├── hooks/
+│   ├── useConfirm.tsx         # Modale de confirmation (remplace window.confirm)
 │   ├── usePlayers.ts          # Store multi-joueurs (localStorage)
 │   ├── useGameState.ts        # Logique de jeu (découplée du stockage)
 │   ├── useTheme.ts            # Gestion des thèmes visuels
@@ -173,7 +182,7 @@ Un `animatingRef` bloque les mises à jour React entrantes pendant l'animation.
 
 ### Internationalisation (i18next)
 
-Deux langues (FR/EN) via `react-i18next`. La langue est persistée dans `renown-tracker-lang`. Pour les contextes non-React (toasts, `confirm()` dans `useGameState`), `i18n.t()` est importé directement depuis le module i18n.
+Deux langues (FR/EN) via `react-i18next`. La langue est persistée dans `renown-tracker-lang`. Pour les contextes non-React (toasts, messages de confirmation dans `useGameState`), `i18n.t()` est importé directement depuis le module i18n.
 
 ### Historique des actions (`recordHistory`)
 
@@ -268,8 +277,8 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Reset des quêtes même si l'onglet reste ouvert
 - [x] Historique des actions
 - [x] Image importée pour l'avatar et les icônes de faction
-- [ ] Outillage : config ESLint, tests unitaires de `gameLogic`, CI
-- [ ] Modale de confirmation à la place de `confirm()`
+- [x] Outillage : config ESLint, tests unitaires de `gameLogic`, CI
+- [x] Modale de confirmation à la place de `confirm()`
 
 ---
 
