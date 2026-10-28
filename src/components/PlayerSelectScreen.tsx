@@ -6,6 +6,7 @@ import { PlayerFormModal, PlayerFormData } from './PlayerFormModal';
 import { IconImage } from './IconImage';
 import { useConfirm } from '../hooks/useConfirm';
 import { AccountBar, AccountInfo } from './AccountBar';
+import { AppFooter } from './AppFooter';
 
 interface PlayerSelectScreenProps {
   players: Player[];
@@ -148,6 +149,8 @@ export function PlayerSelectScreen({
           </button>
         </div>
       </div>
+
+      <AppFooter className="relative z-10 mt-12" />
 
       {modal && (
         <PlayerFormModal

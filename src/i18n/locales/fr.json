@@ -191,5 +191,48 @@
       "offline": "Hors ligne, synchro au retour du réseau",
       "error": "Erreur de synchronisation, nouvel essai bientôt"
     }
+  },
+  "footer": {
+    "legal": "Mentions légales & confidentialité",
+    "version": "v{{version}}"
+  },
+  "legal": {
+    "title": "Mentions légales & confidentialité",
+    "back": "Retour à l'application",
+    "updatedAt": "Dernière mise à jour : {{date}}",
+    "sections": {
+      "publisher": {
+        "title": "Éditeur",
+        "body": "Renown Tracker est un projet personnel, gratuit et non commercial, édité par {{publisher}}.\nContact : {{email}}\nResponsable de la publication et du traitement des données : {{publisher}}."
+      },
+      "hosting": {
+        "title": "Hébergement",
+        "body": "Application : Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, États-Unis (vercel.com).\nComptes et données synchronisées : Supabase Inc., 970 Toa Payoh North #07-04, Singapour 318992 (supabase.com). La base de données est située dans l'Union européenne (Irlande)."
+      },
+      "data": {
+        "title": "Données collectées",
+        "body": "Sans compte : tout reste dans votre navigateur, rien n'est envoyé à un serveur.\nAvec un compte : votre adresse email, l'identifiant de votre compte (et, si vous vous connectez avec Google, le nom et la photo fournis par Google) ainsi que le contenu de vos profils (noms, avatars, factions, quêtes, progression et historique). Les hébergeurs conservent aussi des journaux techniques (adresse IP, date de connexion) pour la sécurité du service."
+      },
+      "purposes": {
+        "title": "Finalités et base légale",
+        "body": "Ces données servent uniquement à vous authentifier et à synchroniser vos profils entre vos appareils. Ce traitement est nécessaire au service que vous demandez en créant un compte (article 6.1.b du RGPD). Aucune publicité, aucune revente, aucune mesure d'audience."
+      },
+      "recipients": {
+        "title": "Destinataires",
+        "body": "Seul l'éditeur et ses sous-traitants techniques y ont accès : Supabase (authentification et base de données), Vercel (hébergement) et Google (uniquement si vous choisissez la connexion Google). Ces sociétés pouvant traiter des données hors de l'Union européenne, les transferts sont encadrés par les clauses contractuelles types de la Commission européenne ou le Data Privacy Framework."
+      },
+      "retention": {
+        "title": "Durée de conservation",
+        "body": "Vos données sont conservées tant que votre compte existe. Sur demande de suppression, le compte et ses profils sont effacés sous 30 jours. Les journaux techniques sont conservés pour une durée limitée par les hébergeurs."
+      },
+      "storage": {
+        "title": "Cookies et stockage local",
+        "body": "Renown Tracker n'utilise ni cookie publicitaire ni traceur. Le stockage local de votre navigateur sert uniquement au fonctionnement de l'application (session de connexion, préférences de langue et de thème, copie locale de vos profils) et ne nécessite donc pas de consentement."
+      },
+      "rights": {
+        "title": "Vos droits",
+        "body": "Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données (l'export d'un profil en JSON permet déjà de les récupérer). Pour les exercer, écrivez à {{email}}. Vous pouvez aussi adresser une réclamation à la CNIL (cnil.fr)."
+      }
+    }
   }
 }
