@@ -36,7 +36,7 @@ export function useGameState(
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, []);
+  }, [setGameState]);
 
   // Compléter une quête
   const completeQuest = (questId: string) => {
