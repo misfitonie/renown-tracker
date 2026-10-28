@@ -20,7 +20,8 @@ L'inspiration vient du système de renommées de World of Warcraft — progresse
 - **Lucide React** — icônes légères tree-shakeable
 - **dnd-kit** — drag & drop pour réordonner les factions
 - **i18next + react-i18next** — internationalisation FR/EN
-- **localStorage** — persistance locale, pas de backend
+- **Supabase** (optionnel) — comptes Google / email et synchronisation des profils entre appareils
+- **localStorage** — cache local, mode hors ligne et mode sans compte
 - **Vercel** — déploiement, avec une preview par PR
 - **Vitest + ESLint + GitHub Actions** — tests, lint et CI
 
@@ -32,6 +33,9 @@ L'inspiration vient du système de renommées de World of Warcraft — progresse
 npm install
 npm run dev
 ```
+
+Sans configuration, l'app tourne en mode local (sans compte). Pour activer les comptes et la synchronisation,
+voir [docs/supabase.md](docs/supabase.md) puis `cp .env.example .env.local`.
 
 Build de production :
 
@@ -64,10 +68,13 @@ src/
 │   ├── ImageUploadField.tsx   # Champ d'import d'image (avatar / icône faction)
 │   ├── IconImage.tsx          # Affiche l'image importée, sinon l'emoji
 │   ├── TransferModal.tsx      # Modale Import / Export (profil ou faction)
+│   ├── AuthScreen.tsx         # Connexion Google / email, inscription, mot de passe oublié
+│   ├── AccountBar.tsx         # Compte connecté + état de la synchro
 │   └── ToastContainer.tsx     # Notifications
 ├── hooks/
 │   ├── useConfirm.tsx         # Modale de confirmation (remplace window.confirm)
-│   ├── usePlayers.ts          # Store multi-joueurs (localStorage)
+│   ├── useAuth.ts             # Session Supabase, mode sans compte
+│   ├── usePlayers.ts          # Store multi-joueurs (cache localStorage + synchro Supabase)
 │   ├── useGameState.ts        # Logique de jeu (découplée du stockage)
 │   ├── useTheme.ts            # Thème clair / sombre (data-theme sur <html>)
 │   └── useToast.ts            # Système de notifications
@@ -76,6 +83,8 @@ src/
 │   └── locales/
 │       ├── fr.json            # Traductions françaises
 │       └── en.json            # Traductions anglaises
+├── lib/
+│   └── supabase.ts            # Client Supabase (null si non configuré)
 ├── types/
 │   └── index.ts               # Tous les types TypeScript
 ├── utils/
@@ -206,6 +215,9 @@ Une seule clé `renown-tracker` contient l'ensemble du store :
 
 Lecture/écriture atomique, pas de désynchronisation possible.
 
+Connecté à un compte, le même format est gardé en cache sous `renown-tracker:account:<userId>`, avec en plus
+la liste des profils en attente d'envoi (`pending`). Voir [docs/supabase.md](docs/supabase.md).
+
 ### Anneau de progression SVG
 
 ```tsx
@@ -278,6 +290,7 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Image importée pour l'avatar et les icônes de faction
 - [x] Outillage : config ESLint, tests unitaires de `gameLogic`, CI
 - [x] Modale de confirmation à la place de `confirm()`
+- [x] Comptes (Google / email) et synchronisation des profils entre appareils, hors ligne compris
 
 ---
 

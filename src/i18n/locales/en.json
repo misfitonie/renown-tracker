@@ -145,5 +145,51 @@
       "profileHint": "Added as a new profile, the current one is left untouched.",
       "factionHint": "Added to the current profile with its quests."
     }
+  },
+  "auth": {
+    "subtitle": {
+      "signIn": "Sign in to get your profiles back",
+      "signUp": "Create your account",
+      "reset": "Reset your password",
+      "newPassword": "Choose a new password"
+    },
+    "google": "Continue with Google",
+    "or": "or",
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "submit": {
+      "signIn": "Sign in",
+      "signUp": "Create account",
+      "reset": "Send link",
+      "newPassword": "Save"
+    },
+    "toSignUp": "No account yet? Sign up",
+    "toSignIn": "Already have an account? Sign in",
+    "forgotPassword": "Forgot your password?",
+    "continueAsGuest": "Continue without an account",
+    "guestHint": "Profiles stay on this device only.",
+    "error": {
+      "signIn": "Wrong email or password.",
+      "network": "Can't reach the server. Check your connection."
+    },
+    "info": {
+      "confirmEmail": "A confirmation email has been sent. Click the link, then sign in.",
+      "resetSent": "If an account exists for this email, a reset link has just been sent."
+    },
+    "account": {
+      "signedInAs": "Signed in: {{email}}",
+      "guest": "No account: profiles on this device only",
+      "signIn": "Sign in",
+      "signOut": "Sign out",
+      "signOutPending": "Some changes are not synced yet and will be lost on this device. Sign out anyway?"
+    },
+    "sync": {
+      "local": "Local",
+      "syncing": "Syncing…",
+      "synced": "Synced",
+      "offline": "Offline, will sync when back online",
+      "error": "Sync error, retrying soon"
+    }
   }
 }

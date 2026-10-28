@@ -145,5 +145,51 @@
       "profileHint": "Ajouté comme nouveau profil, sans toucher au profil actuel.",
       "factionHint": "Ajoutée au profil actuel avec ses quêtes."
     }
+  },
+  "auth": {
+    "subtitle": {
+      "signIn": "Connectez-vous pour retrouver vos profils",
+      "signUp": "Créez votre compte",
+      "reset": "Réinitialiser le mot de passe",
+      "newPassword": "Choisissez un nouveau mot de passe"
+    },
+    "google": "Continuer avec Google",
+    "or": "ou",
+    "email": "Email",
+    "password": "Mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "submit": {
+      "signIn": "Se connecter",
+      "signUp": "Créer le compte",
+      "reset": "Envoyer le lien",
+      "newPassword": "Enregistrer"
+    },
+    "toSignUp": "Pas encore de compte ? Créer un compte",
+    "toSignIn": "Déjà un compte ? Se connecter",
+    "forgotPassword": "Mot de passe oublié ?",
+    "continueAsGuest": "Continuer sans compte",
+    "guestHint": "Les profils restent uniquement sur cet appareil.",
+    "error": {
+      "signIn": "Email ou mot de passe incorrect.",
+      "network": "Impossible de joindre le serveur. Vérifiez votre connexion."
+    },
+    "info": {
+      "confirmEmail": "Un email de confirmation vous a été envoyé. Cliquez sur le lien puis connectez-vous.",
+      "resetSent": "Si un compte existe pour cet email, un lien de réinitialisation vient d'être envoyé."
+    },
+    "account": {
+      "signedInAs": "Connecté : {{email}}",
+      "guest": "Mode sans compte : profils sur cet appareil uniquement",
+      "signIn": "Se connecter",
+      "signOut": "Se déconnecter",
+      "signOutPending": "Certains changements ne sont pas encore synchronisés et seront perdus sur cet appareil. Se déconnecter quand même ?"
+    },
+    "sync": {
+      "local": "Local",
+      "syncing": "Synchronisation…",
+      "synced": "Synchronisé",
+      "offline": "Hors ligne, synchro au retour du réseau",
+      "error": "Erreur de synchronisation, nouvel essai bientôt"
+    }
   }
 }
