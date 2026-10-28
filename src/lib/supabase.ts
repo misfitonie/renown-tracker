@@ -2,12 +2,17 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const env = import.meta.env;
 // Noms acceptés : ceux du guide (VITE_*), l'ancienne clé anon, et ceux de l'intégration Supabase de Vercel
-const url = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL;
-const key =
+// Seule la racine du projet est valide : on retire un éventuel /rest/v1 (« RESTful endpoint ») ou / final
+const url = (env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL)
+  ?.trim()
+  .replace(/\/(rest|auth)\/v1\/?$/, '')
+  .replace(/\/+$/, '');
+const key = (
   env.VITE_SUPABASE_PUBLISHABLE_KEY ||
   env.VITE_SUPABASE_ANON_KEY ||
   env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)?.trim();
 
 if (!url || !key) console.info('[renown-tracker] Supabase non configuré : mode local uniquement');
 
