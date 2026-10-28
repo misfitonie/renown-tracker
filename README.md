@@ -285,6 +285,7 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Outillage : config ESLint, tests unitaires de `gameLogic`, CI
 - [x] Modale de confirmation à la place de `confirm()`
 - [x] Comptes (Google / email) et synchronisation du profil entre appareils, hors ligne compris
+- [x] Marketplace de factions : publier, chercher par nom ou thème, liker, installer, signaler
 
 ---
 

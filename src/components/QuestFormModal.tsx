@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Quest, Faction, FactionId, QuestType, CompletionType } from '../types';
+import { MARKETPLACE_LIMITS } from '../utils/marketplace';
 
 export interface QuestFormData {
   title: string;
@@ -77,6 +78,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               className={inputClass}
               placeholder={t('quest.modal.titlePlaceholder')}
+              maxLength={MARKETPLACE_LIMITS.questTitle}
               required
             />
           </div>
@@ -90,6 +92,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               className={inputClass}
               placeholder={t('quest.modal.descriptionPlaceholder')}
+              maxLength={MARKETPLACE_LIMITS.questDescription}
             />
           </div>
 

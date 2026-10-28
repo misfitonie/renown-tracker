@@ -209,12 +209,13 @@ export function useProfile(userId: string | null = null) {
     [savePlayer]
   );
 
-  const createProfile = (data: ProfileFormData) => {
+  // starterIds : factions de départ choisies à la création
+  const createProfile = (data: ProfileFormData, starterIds?: string[], lang?: string) => {
     savePlayer(() => ({
       id: `player-${Date.now()}`,
       ...data,
       createdAt: new Date().toISOString(),
-      gameState: getInitialGameState(),
+      gameState: getInitialGameState(starterIds, lang),
     }));
   };
 

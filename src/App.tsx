@@ -19,11 +19,12 @@ import { AccountBar, AccountInfo } from './components/AccountBar';
 import { useAuth, Auth } from './hooks/useAuth';
 import { ToastContainer } from './components/ToastContainer';
 import { AppFooter } from './components/AppFooter';
+import { MarketplaceModal } from './components/marketplace/MarketplaceModal';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { isQuestCompleted } from './utils/gameLogic';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft, History, Moon, Sun } from 'lucide-react';
+import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft, History, Moon, Sun, Store, Share2 } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { THEME_IDS, ThemeId } from './utils/themes';
 import { downloadJson, pickJsonFile } from './utils/file';
@@ -46,6 +47,7 @@ function GameApp({
   themeId,
   onThemeChange,
   account,
+  userId,
 }: {
   player: Player;
   onUpdateGameState: (updater: GameState | ((prev: GameState) => GameState)) => void;
@@ -55,6 +57,7 @@ function GameApp({
   themeId: ThemeId;
   onThemeChange: (id: ThemeId) => void;
   account?: AccountInfo;
+  userId: string | null;
 }) {
   const { toasts, showToast, removeToast } = useToast();
   const { confirm, confirmDialog } = useConfirm();
@@ -78,6 +81,7 @@ function GameApp({
     reorderFactions,
     resetAllData,
     importFaction,
+    installFaction,
   } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp, confirm);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -99,6 +103,8 @@ function GameApp({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(false);
   const [transferMode, setTransferMode] = useState<TransferMode | null>(null);
+  // Marketplace (comptes Supabase activés) ; publishFactionId ouvre directement la publication
+  const [marketplace, setMarketplace] = useState<{ publishFactionId?: string } | null>(null);
   const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
   const [mobileView, setMobileView] = useState<'factions' | 'quests'>('factions');
   const menuRef = useRef<HTMLDivElement>(null);
@@ -200,6 +206,15 @@ function GameApp({
               <History size={14} />
               {t('app.settings.history')}
             </button>
+            {account && (
+              <button
+                onClick={() => { setMarketplace({}); setMenuOpen(false); }}
+                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors border-t border-gray-700"
+              >
+                <Store size={14} />
+                {t('marketplace.title')}
+              </button>
+            )}
             <div className="grid grid-cols-2 border-t border-gray-700">
               <button
                 onClick={() => { setTransferMode('import'); setMenuOpen(false); }}
@@ -306,6 +321,15 @@ function GameApp({
               <Plus size={16} />
               {t('faction.newFaction')}
             </button>
+            {account && (
+              <button
+                onClick={() => setMarketplace({})}
+                className="flex items-center justify-center gap-2 w-full p-3 rounded-xl border border-dashed border-gray-700 hover:border-accent-gold/60 text-gray-600 hover:text-accent-gold transition-all text-sm"
+              >
+                <Store size={16} />
+                {t('marketplace.explore')}
+              </button>
+            )}
           </div>
 
           {/* Colonne droite — Quêtes */}
@@ -333,6 +357,15 @@ function GameApp({
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {account && userId && (
+                      <button
+                        onClick={() => setMarketplace({ publishFactionId: selectedFaction.id })}
+                        className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
+                        title={t('marketplace.publish.button')}
+                      >
+                        <Share2 size={14} />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleExportFaction(selectedFaction)}
                       className="flex items-center gap-1.5 bg-bg-card hover:bg-bg-card/80 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg transition-colors border border-gray-700 text-sm"
@@ -438,6 +471,25 @@ function GameApp({
         />
       )}
 
+      {marketplace && (
+        <MarketplaceModal
+          userId={userId}
+          factions={gameState.factions}
+          quests={gameState.quests}
+          publishFactionId={marketplace.publishFactionId}
+          onInstall={(shared) => {
+            const id = installFaction(shared);
+            setSelectedFactionId(id);
+            setQuestFilter('all');
+            setMarketplace(null);
+          }}
+          onSignIn={account?.onSignIn}
+          onClose={() => setMarketplace(null)}
+          showToast={showToast}
+          confirm={confirm}
+        />
+      )}
+
       {factionModal && (
         <FactionFormModal
           initialData={factionModal.mode === 'edit' ? factionModal.faction : undefined}
@@ -515,6 +567,7 @@ function ProfileApp({
       <>
         <ProfileSetupScreen
           onCreate={createProfile}
+          userId={userId}
           onImport={() => pickJsonFile(importProfile)}
           account={account}
           loading={!loaded}
@@ -536,6 +589,7 @@ function ProfileApp({
         themeId={themeId}
         onThemeChange={onThemeChange}
         account={account}
+        userId={userId}
       />
       {confirmDialog}
     </>

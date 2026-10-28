@@ -13,13 +13,14 @@ export interface PlayerFormData {
 }
 
 interface PlayerFormProps {
-  initialData?: Player;
+  initialData?: PlayerFormData;
   onSave: (data: PlayerFormData) => void;
   onCancel?: () => void;
+  submitLabel?: string;
 }
 
 // Formulaire du personnage : utilisé à la création (écran d'accueil) et en modale pour le modifier
-export function PlayerForm({ initialData, onSave, onCancel }: PlayerFormProps) {
+export function PlayerForm({ initialData, onSave, onCancel, submitLabel }: PlayerFormProps) {
   const { t } = useTranslation();
   const [form, setForm] = useState<PlayerFormData>({
     name: initialData?.name ?? '',
@@ -104,7 +105,7 @@ export function PlayerForm({ initialData, onSave, onCancel }: PlayerFormProps) {
           type="submit"
           className="flex-1 bg-accent-purple hover:bg-accent-purple/80 text-on-accent font-semibold px-4 py-2 rounded-lg transition-colors"
         >
-          {initialData ? t('player.form.save') : t('player.form.create')}
+          {submitLabel ?? (initialData ? t('player.form.save') : t('player.form.create'))}
         </button>
       </div>
     </form>

@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { GameState, Quest, Faction, FactionId } from '../types';
-import { getInitialGameState } from '../utils/initialData';
+import { getInitialGameState, DEFAULT_STARTER_IDS } from '../utils/initialData';
 import { applyPeriodicResets, recordHistory, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
+import { FactionTemplate, instantiateTemplate } from '../utils/marketplace';
 import i18n from '../i18n';
 
 export function useGameState(
@@ -382,7 +383,7 @@ export function useGameState(
   // Reset des données du joueur actif
   const resetAllData = async () => {
     if (await confirmAction(i18n.t('app.confirm.reset'))) {
-      setGameState(getInitialGameState());
+      setGameState(getInitialGameState(DEFAULT_STARTER_IDS, i18n.language));
     }
   };
 
@@ -422,6 +423,18 @@ export function useGameState(
     }
   };
 
+  // Installation d'une faction de la marketplace : copie au niveau 0, quêtes à zéro
+  const installFaction = (template: Pick<FactionTemplate, 'name' | 'icon' | 'image' | 'color' | 'quests'>) => {
+    const { faction, quests } = instantiateTemplate(template);
+    setGameState(prev => ({
+      ...prev,
+      factions: [...prev.factions, faction],
+      quests: [...prev.quests, ...quests],
+    }));
+    showToast(i18n.t('toast.factionInstalled', { name: faction.name }), 'success');
+    return faction.id;
+  };
+
   const reorderFactions = (newFactions: Faction[]) => {
     setGameState(prev => ({ ...prev, factions: newFactions }));
   };
@@ -441,5 +454,6 @@ export function useGameState(
     resetAllData,
     exportData,
     importFaction,
+    installFaction,
   };
 }

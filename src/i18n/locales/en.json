@@ -50,6 +50,11 @@
       "preview": "Preview",
       "create": "Start the adventure",
       "save": "Save"
+    },
+    "setup": {
+      "next": "Next",
+      "startersTitle": "Starting factions",
+      "startersHint": "Pick the areas you want to level up. Each faction comes with a few quests you can edit. You'll find more on the marketplace."
     }
   },
   "faction": {
@@ -124,7 +129,8 @@
     "weeklyCompleted": "✅ Weekly quest \"{{title}}\" completed!",
     "factionImportSuccess": "Faction imported successfully!",
     "factionImportError": "Error importing faction",
-    "profileImportError": "This file is not a valid profile"
+    "profileImportError": "This file is not a valid profile",
+    "factionInstalled": "{{name}} joined your factions!"
   },
   "history": {
     "title": "History",
@@ -153,6 +159,95 @@
       "title": "Import",
       "profileHint": "Replaces your current character.",
       "factionHint": "Added to your profile with its quests."
+    }
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "explore": "Browse the marketplace",
+    "tabs": {
+      "explore": "Browse",
+      "mine": "My publications"
+    },
+    "searchPlaceholder": "Search for a faction…",
+    "sort": {
+      "popular": "Most liked",
+      "recent": "Most recent"
+    },
+    "tags": {
+      "health": "Health",
+      "sport": "Sport",
+      "mind": "Well-being",
+      "learning": "Learning",
+      "work": "Work",
+      "creativity": "Creativity",
+      "finance": "Finance",
+      "social": "Relationships",
+      "home": "Home",
+      "leisure": "Leisure"
+    },
+    "cardMeta_one": "by {{pseudo}} · {{count}} quest",
+    "cardMeta_other": "by {{pseudo}} · {{count}} quests",
+    "byAuthor": "by {{pseudo}} · {{date}}",
+    "empty": "No faction matches this search.",
+    "emptyMine": "You haven't published any faction yet.",
+    "loading": "Loading…",
+    "loadMore": "Show more",
+    "retry": "Retry",
+    "install": "Install",
+    "installHint": "Installing adds a copy to your factions, at level 0 with all quests to do.",
+    "signInToLike": "Sign in to like this faction",
+    "signInToPublish": "Sign in to publish",
+    "unpublish": "Unpublish",
+    "unpublishConfirm": "Remove this faction from the marketplace? Copies already installed by other players stay with them.",
+    "unpublished": "Faction removed from the marketplace",
+    "published": "Faction published!",
+    "hiddenBadge": "Hidden",
+    "hiddenNotice": "This faction was hidden after several reports: other players can no longer see it.",
+    "publish": {
+      "button": "Publish",
+      "title": "Publish a faction",
+      "factionLabel": "Faction",
+      "questCount_one": "{{count}} quest will be shared",
+      "questCount_other": "{{count}} quests will be shared",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "Who this faction is for, how to use it…",
+      "tagsLabel": "Themes (1 to {{max}})",
+      "privacy": "Only the faction's structure (name, icon, colour) and the quest definitions are published. Your level, XP, gems, completed quests and history stay private.",
+      "asPseudo": "Published as \"{{pseudo}}\".",
+      "submit": "Publish to the marketplace",
+      "errors": {
+        "name": "The faction name is empty or too long.",
+        "description": "The description is too long.",
+        "tags": "Pick at least one theme.",
+        "noQuests": "Add at least one quest to this faction before publishing it.",
+        "tooManyQuests": "A published faction can have at most {{max}} quests.",
+        "questTitle": "A quest title is empty or too long.",
+        "image": "The faction image is too large."
+      }
+    },
+    "pseudo": {
+      "title": "Your public nickname",
+      "hint": "It is shown on the factions you publish, instead of your email.",
+      "placeholder": "E.g. Theo_42",
+      "save": "Save",
+      "change": "Change",
+      "invalid": "{{min}} to {{max}} characters: letters, digits, \"_\", \"-\" or \".\".",
+      "taken": "This nickname is already taken."
+    },
+    "report": {
+      "button": "Report",
+      "reasonLabel": "Why are you reporting this faction? (optional)",
+      "submit": "Send report",
+      "thanks": "Thanks, the report was sent.",
+      "done": "You reported this faction."
+    },
+    "error": {
+      "load": "Could not load the marketplace.",
+      "offline": "Could not reach the server. Check your connection.",
+      "pseudoTaken": "This nickname is already taken.",
+      "quota": "You reached the limit of 20 published factions.",
+      "invalid": "This faction doesn't meet the marketplace limits.",
+      "unknown": "Something went wrong, please try again."
     }
   },
   "auth": {
@@ -220,15 +315,19 @@
       },
       "data": {
         "title": "Data collected",
-        "body": "Without an account: everything stays in your browser, nothing is sent to a server.\nWith an account: your email address, your account ID (and, if you sign in with Google, the name and picture provided by Google) and the content of your profile (name, avatar, factions, quests, progress and history). The hosting providers also keep technical logs (IP address, sign-in time) for security purposes."
+        "body": "Without an account: everything stays in your browser, nothing is sent to a server.\nWith an account: your email address, your account ID (and, if you sign in with Google, the name and picture provided by Google) and the content of your profile (name, avatar, factions, quests, progress and history). The hosting providers also keep technical logs (IP address, sign-in time) for security purposes.\nIf you use the marketplace: your public nickname, the factions you publish, your likes and your reports."
       },
       "purposes": {
         "title": "Purposes and legal basis",
-        "body": "This data is only used to authenticate you and sync your profile across your devices. This processing is necessary for the service you request by creating an account (GDPR article 6.1.b). No advertising, no data selling, no analytics."
+        "body": "This data is only used to authenticate you, sync your profile across your devices and, if you use it, run the marketplace. This processing is necessary for the service you request by creating an account (GDPR article 6.1.b). No advertising, no data selling, no analytics."
+      },
+      "marketplace": {
+        "title": "Marketplace (public content)",
+        "body": "If you publish a faction to the marketplace, the following becomes public: its name, icon or image, colour, description, themes, the definition of its quests (titles, descriptions, frequencies, rewards) and your public nickname. Your email, level, XP, gems, completed quests and history are never published. Your likes and reports are not visible to other players; reports (and their reason) are read by the publisher for moderation, and a faction reported several times is hidden. You can unpublish a faction at any time; copies already installed by other players stay with them. This sharing relies on your voluntary act of publishing (GDPR article 6.1.b)."
       },
       "recipients": {
         "title": "Recipients",
-        "body": "Only the publisher and its technical processors can access it: Supabase (authentication and database), Vercel (hosting) and Google (only if you choose Google sign-in). As these companies may process data outside the European Union, transfers are covered by the European Commission's standard contractual clauses or the Data Privacy Framework."
+        "body": "Apart from content published to the marketplace, only the publisher and its technical processors can access it: Supabase (authentication and database), Vercel (hosting) and Google (only if you choose Google sign-in). As these companies may process data outside the European Union, transfers are covered by the European Commission's standard contractual clauses or the Data Privacy Framework."
       },
       "retention": {
         "title": "Retention",
