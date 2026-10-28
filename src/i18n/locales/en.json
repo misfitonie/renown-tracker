@@ -14,7 +14,8 @@
       "import": "Import",
       "theme": "Theme",
       "language": "Language",
-      "reset": "Reset"
+      "reset": "Reset",
+      "history": "History"
     },
     "confirm": {
       "reset": "Are you sure you want to reset all your data?"
@@ -104,5 +105,17 @@
     "importError": "Error importing data",
     "factionImportSuccess": "Faction imported successfully!",
     "factionImportError": "Error importing faction"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No actions yet.",
+    "quest_completed": "Quest completed: {{title}}",
+    "quest_uncompleted": "Quest unchecked: {{title}}",
+    "faction_level_up": "{{name}} reached level {{level}}",
+    "faction_level_down": "{{name}} dropped to level {{level}}",
+    "player_level_up": "Reached player level {{level}}",
+    "player_level_down": "Back to player level {{level}}",
+    "today": "Today",
+    "yesterday": "Yesterday"
   }
 }

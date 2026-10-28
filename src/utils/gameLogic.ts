@@ -1,4 +1,4 @@
-import { Faction, GameState, Quest, QuestType } from '../types';
+import { Faction, GameState, HistoryEntry, Quest, QuestType } from '../types';
 
 /**
  * Calcule l'XP nécessaire pour atteindre le prochain niveau de renommée
@@ -203,4 +203,59 @@ export function addXPToFaction(faction: Faction, xpAmount: number): { faction: F
   };
 
   return { faction: updatedFaction, leveledUp };
+}
+
+export const HISTORY_MAX_ENTRIES = 500;
+
+/**
+ * Compare deux états et ajoute à l'historique les quêtes validées/dévalidées
+ * et les changements de niveau (factions et joueur)
+ */
+export function recordHistory(prev: GameState, next: GameState): GameState {
+  const at = new Date().toISOString();
+  const entries: Omit<HistoryEntry, 'id' | 'at'>[] = [];
+  const factionOf = (id: string) => next.factions.find(f => f.id === id) ?? prev.factions.find(f => f.id === id);
+
+  for (const quest of next.quests) {
+    const before = prev.quests.find(q => q.id === quest.id);
+    if (!before) continue;
+    const wasCompleted = isQuestCompleted(before);
+    const nowCompleted = isQuestCompleted(quest);
+    if (wasCompleted === nowCompleted) continue;
+    const faction = factionOf(quest.factionId);
+    entries.push({
+      type: nowCompleted ? 'quest_completed' : 'quest_uncompleted',
+      questTitle: quest.title,
+      factionName: faction?.name,
+      factionIcon: faction?.icon,
+      xp: quest.xpReward,
+      currency: quest.currencyReward,
+    });
+  }
+
+  for (const faction of next.factions) {
+    const before = prev.factions.find(f => f.id === faction.id);
+    if (!before || before.renownLevel === faction.renownLevel) continue;
+    entries.push({
+      type: faction.renownLevel > before.renownLevel ? 'faction_level_up' : 'faction_level_down',
+      factionName: faction.name,
+      factionIcon: faction.icon,
+      level: faction.renownLevel,
+    });
+  }
+
+  if (next.playerLevel !== prev.playerLevel) {
+    entries.push({
+      type: next.playerLevel > prev.playerLevel ? 'player_level_up' : 'player_level_down',
+      level: next.playerLevel,
+    });
+  }
+
+  if (entries.length === 0) return next;
+
+  const stamped = entries.map((e, i) => ({ ...e, id: `history-${Date.now()}-${i}`, at }));
+  return {
+    ...next,
+    history: [...stamped.reverse(), ...(next.history ?? [])].slice(0, HISTORY_MAX_ENTRIES),
+  };
 }
