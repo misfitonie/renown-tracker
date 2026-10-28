@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { GameState, Quest, Faction, FactionId } from '../types';
 import { getInitialGameState } from '../utils/initialData';
-import { applyPeriodicResets, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
+import { applyPeriodicResets, recordHistory, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
@@ -105,13 +105,13 @@ export function useGameState(
       }
     }
 
-    setGameState({
+    setGameState(recordHistory(gameState, {
       ...gameState,
       quests: finalQuests,
       factions: finalFactions,
       currency: finalCurrency,
       ...finalPlayerUpdate,
-    });
+    }));
 
     if (leveledUp) {
       showToast(i18n.t('toast.factionLevelUp', { name: updatedFaction.name, level: updatedFaction.renownLevel }), 'success');
@@ -184,7 +184,7 @@ export function useGameState(
 
     if (isNowCompleted) {
       const factionIndex = finalFactions.findIndex(f => f.id === quest.factionId);
-      if (factionIndex === -1) { setGameState({ ...gameState, quests: finalQuests }); return; }
+      if (factionIndex === -1) { setGameState(recordHistory(gameState, { ...gameState, quests: finalQuests })); return; }
 
       const { faction: updatedFaction, leveledUp } = addXPToFaction(
         finalFactions[factionIndex],
@@ -201,13 +201,13 @@ export function useGameState(
       }
     }
 
-    setGameState({
+    setGameState(recordHistory(gameState, {
       ...gameState,
       quests: finalQuests,
       factions: finalFactions,
       currency: finalCurrency,
       ...finalPlayerUpdate,
-    });
+    }));
   };
 
   // Décocher une quête (annule XP, currency et régresse le niveau si nécessaire)
@@ -290,13 +290,13 @@ export function useGameState(
       }
     }
 
-    setGameState({
+    setGameState(recordHistory(gameState, {
       ...gameState,
       quests: finalQuests,
       factions: finalFactions,
       currency: finalCurrency,
       ...playerUpdate,
-    });
+    }));
   };
 
   // Ajouter une quête

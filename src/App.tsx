@@ -8,13 +8,14 @@ import { FactionCard } from './components/FactionCard';
 import { QuestCard } from './components/QuestCard';
 import { QuestFormModal, QuestFormData } from './components/QuestFormModal';
 import { FactionFormModal, FactionFormData } from './components/FactionFormModal';
+import { HistoryModal } from './components/HistoryModal';
 import { PlayerSelectScreen } from './components/PlayerSelectScreen';
 import { ToastContainer } from './components/ToastContainer';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { isQuestCompleted } from './utils/gameLogic';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft } from 'lucide-react';
+import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft, History } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { THEMES } from './utils/themes';
 
@@ -79,6 +80,7 @@ function GameApp({
   const [factionModal, setFactionModal] = useState<FactionModalState | null>(null);
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
   const [mobileView, setMobileView] = useState<'factions' | 'quests'>('factions');
   const menuRef = useRef<HTMLDivElement>(null);
@@ -195,6 +197,14 @@ function GameApp({
         </button>
         {menuOpen && (
           <div className="absolute top-11 left-0 bg-bg-card border border-gray-700 rounded-lg shadow-xl overflow-hidden w-44">
+            <button
+              onClick={() => { setHistoryOpen(true); setMenuOpen(false); }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
+            >
+              <History size={14} />
+              {t('app.settings.history')}
+            </button>
+            <div className="border-t border-gray-700" />
             <button
               onClick={() => { onExportPlayer(); setMenuOpen(false); }}
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
@@ -404,6 +414,10 @@ function GameApp({
       </div>
 
       {/* Modal faction */}
+      {historyOpen && (
+        <HistoryModal history={gameState.history ?? []} onClose={() => setHistoryOpen(false)} />
+      )}
+
       {factionModal && (
         <FactionFormModal
           initialData={factionModal.mode === 'edit' ? factionModal.faction : undefined}

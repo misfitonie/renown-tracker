@@ -39,6 +39,27 @@ export interface Faction {
   xpToNextLevel: number;
 }
 
+// Une entrée de l'historique des actions
+export type HistoryEventType =
+  | 'quest_completed'
+  | 'quest_uncompleted'
+  | 'faction_level_up'
+  | 'faction_level_down'
+  | 'player_level_up'
+  | 'player_level_down';
+
+export interface HistoryEntry {
+  id: string;
+  type: HistoryEventType;
+  at: string;              // date ISO
+  questTitle?: string;
+  factionName?: string;    // copie du nom (la faction peut être supprimée)
+  factionIcon?: string;
+  xp?: number;
+  currency?: number;
+  level?: number;
+}
+
 // L'état global du jeu
 export interface GameState {
   factions: Faction[];
@@ -50,6 +71,7 @@ export interface GameState {
   lastWeeklyReset: string;
   lastMonthlyReset: string;
   lastYearlyReset: string;
+  history?: HistoryEntry[];
 }
 
 // Un profil joueur
