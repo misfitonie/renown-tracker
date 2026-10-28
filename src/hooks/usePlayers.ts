@@ -59,7 +59,7 @@ export function usePlayers() {
     []
   );
 
-  const createPlayer = (data: { name: string; emoji: string; color: string }) => {
+  const createPlayer = (data: { name: string; emoji: string; color: string; avatar?: string }) => {
     const newPlayer: Player = {
       id: `player-${Date.now()}`,
       ...data,
@@ -74,7 +74,7 @@ export function usePlayers() {
 
   const editPlayer = (
     playerId: string,
-    data: { name: string; emoji: string; color: string }
+    data: { name: string; emoji: string; color: string; avatar?: string }
   ) => {
     setStore(prev => ({
       ...prev,

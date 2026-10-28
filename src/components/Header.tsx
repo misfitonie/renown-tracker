@@ -3,6 +3,7 @@ import { Gem } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Player } from '../types';
 import { getXPForNextLevel } from '../utils/gameLogic';
+import { IconImage } from './IconImage';
 
 interface HeaderProps {
   currency: number;
@@ -68,7 +69,7 @@ export function Header({ currency, player, playerXP, playerLevel, onSwitchPlayer
           }}
           title={t('player.switchProfile')}
         >
-          <span className="text-4xl md:text-5xl leading-none flex-shrink-0">{player.emoji}</span>
+          <IconImage image={player.avatar} emoji={player.emoji} className="text-4xl md:text-5xl leading-none flex-shrink-0" imageClassName="w-10 h-10 md:w-14 md:h-14" />
 
           <div className="flex-1 min-w-0 md:min-w-[260px] text-left">
             <div className="flex items-center justify-between mb-2">
