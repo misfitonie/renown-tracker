@@ -5,6 +5,7 @@ import { Player } from '../types';
 import { PlayerFormModal, PlayerFormData } from './PlayerFormModal';
 import { IconImage } from './IconImage';
 import { useConfirm } from '../hooks/useConfirm';
+import { AccountBar, AccountInfo } from './AccountBar';
 
 interface PlayerSelectScreenProps {
   players: Player[];
@@ -14,6 +15,7 @@ interface PlayerSelectScreenProps {
   onSelect: (playerId: string) => void;
   onExport: (playerId: string) => void;
   onImport: () => void;
+  account?: AccountInfo;
 }
 
 type ModalState =
@@ -28,6 +30,7 @@ export function PlayerSelectScreen({
   onSelect,
   onExport,
   onImport,
+  account,
 }: PlayerSelectScreenProps) {
   const { t } = useTranslation();
   const [modal, setModal] = useState<ModalState | null>(null);
@@ -57,6 +60,13 @@ export function PlayerSelectScreen({
       </div>
 
       <div className="relative z-10 w-full max-w-2xl">
+        {account && (
+          <AccountBar
+            account={account}
+            className="mb-8 bg-bg-card/60 border border-gray-700 rounded-lg px-3 py-2"
+          />
+        )}
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="font-title text-5xl text-accent-gold mb-3 tracking-wider drop-shadow-[0_0_20px_rgba(212,175,55,0.5)]">

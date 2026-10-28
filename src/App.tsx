@@ -13,6 +13,10 @@ import { HistoryModal } from './components/HistoryModal';
 import { TransferModal, TransferMode } from './components/TransferModal';
 import { IconImage } from './components/IconImage';
 import { PlayerSelectScreen } from './components/PlayerSelectScreen';
+import { AuthScreen } from './components/AuthScreen';
+import { AccountBar, AccountInfo } from './components/AccountBar';
+import { useAuth, Auth } from './hooks/useAuth';
+import { clearAccountCache } from './hooks/usePlayers';
 import { ToastContainer } from './components/ToastContainer';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { isQuestCompleted } from './utils/gameLogic';
@@ -40,6 +44,7 @@ function GameApp({
   onImportPlayer,
   themeId,
   onThemeChange,
+  account,
 }: {
   player: Player;
   onUpdateGameState: (updater: GameState | ((prev: GameState) => GameState)) => void;
@@ -48,6 +53,7 @@ function GameApp({
   onImportPlayer: (jsonString: string) => boolean;
   themeId: ThemeId;
   onThemeChange: (id: ThemeId) => void;
+  account?: AccountInfo;
 }) {
   const { toasts, showToast, removeToast } = useToast();
   const { confirm, confirmDialog } = useConfirm();
@@ -177,7 +183,13 @@ function GameApp({
           <Settings size={16} />
         </button>
         {menuOpen && (
-          <div className="absolute top-11 left-0 bg-bg-card border border-gray-700 rounded-lg shadow-xl overflow-hidden w-52">
+          <div className="absolute top-11 left-0 bg-bg-card border border-gray-700 rounded-lg shadow-xl overflow-hidden w-64">
+            {account && (
+              <>
+                <AccountBar account={{ ...account, onSignIn: () => { setMenuOpen(false); account.onSignIn(); } }} stacked className="px-4 py-2.5" />
+                <div className="border-t border-gray-700" />
+              </>
+            )}
             <button
               onClick={() => { setHistoryOpen(true); setMenuOpen(false); }}
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
@@ -454,10 +466,22 @@ function GameApp({
 }
 
 
-function App() {
+function PlayersApp({
+  auth,
+  userId,
+  themeId,
+  onThemeChange,
+}: {
+  auth: Auth;
+  userId: string | null;
+  themeId: ThemeId;
+  onThemeChange: (id: ThemeId) => void;
+}) {
   const {
     store,
     activePlayer,
+    syncStatus,
+    hasPendingChanges,
     updateActiveGameState,
     createPlayer,
     editPlayer,
@@ -465,11 +489,27 @@ function App() {
     selectPlayer,
     exportPlayer,
     importPlayer,
-  } = usePlayers();
+  } = usePlayers(userId);
 
   const [showSelectScreen, setShowSelectScreen] = useState(false);
+  const { confirm, confirmDialog } = useConfirm();
+  const { t } = useTranslation();
 
-  const { themeId, setThemeId } = useTheme();
+  const handleSignOut = async () => {
+    if (!userId) return;
+    if (hasPendingChanges && !(await confirm(t('auth.account.signOutPending')))) return;
+    await auth.signOut();
+    clearAccountCache(userId);
+  };
+
+  const account: AccountInfo | undefined = auth.enabled
+    ? {
+        email: userId ? (auth.user?.email ?? '') : null,
+        syncStatus,
+        onSignIn: () => auth.setGuest(false),
+        onSignOut: handleSignOut,
+      }
+    : undefined;
 
   const handleImportPlayer = () =>
     pickJsonFile(content => {
@@ -480,26 +520,59 @@ function App() {
   // Afficher l'écran de sélection si pas de joueur actif ou si demandé
   if (!activePlayer || showSelectScreen) {
     return (
-      <PlayerSelectScreen
-        players={store.players}
-        onCreate={(data) => { createPlayer(data); setShowSelectScreen(false); }}
-        onEdit={editPlayer}
-        onDelete={deletePlayer}
-        onSelect={(id) => { selectPlayer(id); setShowSelectScreen(false); }}
-        onExport={exportPlayer}
-        onImport={handleImportPlayer}
-      />
+      <>
+        <PlayerSelectScreen
+          players={store.players}
+          onCreate={(data) => { createPlayer(data); setShowSelectScreen(false); }}
+          onEdit={editPlayer}
+          onDelete={deletePlayer}
+          onSelect={(id) => { selectPlayer(id); setShowSelectScreen(false); }}
+          onExport={exportPlayer}
+          onImport={handleImportPlayer}
+          account={account}
+        />
+        {confirmDialog}
+      </>
     );
   }
 
   return (
-    <GameApp
-      key={activePlayer.id}
-      player={activePlayer}
-      onUpdateGameState={updateActiveGameState}
-      onSwitchPlayer={() => setShowSelectScreen(true)}
-      onExportPlayer={() => exportPlayer(activePlayer.id)}
-      onImportPlayer={importPlayer}
+    <>
+      <GameApp
+        key={activePlayer.id}
+        player={activePlayer}
+        onUpdateGameState={updateActiveGameState}
+        onSwitchPlayer={() => setShowSelectScreen(true)}
+        onExportPlayer={() => exportPlayer(activePlayer.id)}
+        onImportPlayer={importPlayer}
+        themeId={themeId}
+        onThemeChange={onThemeChange}
+        account={account}
+      />
+      {confirmDialog}
+    </>
+  );
+}
+
+function App() {
+  const auth = useAuth();
+  const { themeId, setThemeId } = useTheme();
+
+  if (auth.status === 'loading') {
+    return <div className="min-h-screen" style={{ backgroundColor: 'var(--theme-bg)' }} />;
+  }
+
+  if (auth.recovering || (auth.status === 'signedOut' && !auth.guest)) {
+    return <AuthScreen auth={auth} />;
+  }
+
+  const userId = auth.status === 'signedIn' ? (auth.user?.id ?? null) : null;
+
+  return (
+    <PlayersApp
+      key={userId ?? 'guest'}
+      auth={auth}
+      userId={userId}
       themeId={themeId}
       onThemeChange={setThemeId}
     />

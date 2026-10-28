@@ -83,6 +83,7 @@ export interface Player {
   avatar?: string; // image importée (data URL), prioritaire sur l'emoji
   color: string;
   createdAt: string;
+  updatedAt?: string; // date ISO de la dernière modification (synchro entre appareils)
   gameState: GameState;
 }
 
@@ -90,4 +91,11 @@ export interface Player {
 export interface PlayersStore {
   activePlayerId: string | null;
   players: Player[];
+  // Compte connecté uniquement : profils modifiés / supprimés pas encore envoyés au serveur
+  pending?: PendingSync;
+}
+
+export interface PendingSync {
+  dirty: string[];
+  deleted: string[];
 }
