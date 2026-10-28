@@ -1,4 +1,4 @@
-import { Faction, Quest } from '../types';
+import { Faction, GameState, Quest, QuestType } from '../types';
 
 /**
  * Calcule l'XP nécessaire pour atteindre le prochain niveau de renommée
@@ -68,6 +68,52 @@ export function shouldResetYearlies(lastResetDate: string): boolean {
   const lastReset = new Date(lastResetDate);
   const now = new Date();
   return lastReset.getFullYear() !== now.getFullYear();
+}
+
+/**
+ * Remet à zéro les quêtes d'un type donné (gère la rupture de streak)
+ */
+function resetQuestsOfType(quests: Quest[], type: QuestType): Quest[] {
+  return quests.map(quest => {
+    if (quest.type !== type) return quest;
+    const streakBroken = quest.followStreak && !isQuestCompleted(quest);
+    return {
+      ...quest,
+      completed: false,
+      current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
+      streakCount: streakBroken ? 0 : quest.streakCount,
+    };
+  });
+}
+
+/**
+ * Applique les resets daily/weekly/monthly/yearly nécessaires
+ * Retourne null si aucun reset n'est nécessaire
+ */
+export function applyPeriodicResets(state: GameState): GameState | null {
+  const epoch = new Date(0).toISOString();
+  const now = new Date().toISOString();
+  let updated = state;
+  let changed = false;
+
+  if (shouldResetDailies(state.lastDailyReset)) {
+    updated = { ...updated, quests: resetQuestsOfType(updated.quests, 'daily'), lastDailyReset: now };
+    changed = true;
+  }
+  if (shouldResetWeeklies(state.lastWeeklyReset)) {
+    updated = { ...updated, quests: resetQuestsOfType(updated.quests, 'weekly'), lastWeeklyReset: now };
+    changed = true;
+  }
+  if (shouldResetMonthlies(state.lastMonthlyReset ?? epoch)) {
+    updated = { ...updated, quests: resetQuestsOfType(updated.quests, 'monthly'), lastMonthlyReset: now };
+    changed = true;
+  }
+  if (shouldResetYearlies(state.lastYearlyReset ?? epoch)) {
+    updated = { ...updated, quests: resetQuestsOfType(updated.quests, 'yearly'), lastYearlyReset: now };
+    changed = true;
+  }
+
+  return changed ? updated : null;
 }
 
 /**
