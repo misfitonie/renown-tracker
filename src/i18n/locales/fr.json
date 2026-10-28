@@ -24,7 +24,11 @@
       "theme": "Thème",
       "language": "Langue",
       "reset": "Reset",
-      "history": "Historique"
+      "history": "Historique",
+      "themes": {
+        "dark": "Sombre",
+        "light": "Clair"
+      }
     },
     "confirm": {
       "reset": "Êtes-vous sûr de vouloir réinitialiser toutes vos données ?"
@@ -45,7 +49,6 @@
     "headerLevel": "Niveau {{level}} · {{current}} / {{max}} XP",
     "deleteConfirm": "Supprimer cette faction et toutes ses quêtes définitivement ?",
     "exportFaction": "Exporter la faction",
-    "importFaction": "Importer une faction",
     "modal": {
       "titleEdit": "Modifier la faction",
       "titleCreate": "Nouvelle faction",
@@ -110,10 +113,9 @@
   "toast": {
     "factionLevelUp": "🎉 {{name}} niveau {{level}} !",
     "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",
-    "importSuccess": "Données importées avec succès !",
-    "importError": "Erreur lors de l'import des données",
     "factionImportSuccess": "Faction importée avec succès !",
-    "factionImportError": "Erreur lors de l'import de la faction"
+    "factionImportError": "Erreur lors de l'import de la faction",
+    "profileImportError": "Ce fichier n'est pas un profil valide"
   },
   "history": {
     "title": "Historique",
@@ -126,5 +128,22 @@
     "player_level_down": "Retour au niveau joueur {{level}}",
     "today": "Aujourd'hui",
     "yesterday": "Hier"
+  },
+  "transfer": {
+    "profile": "Profil",
+    "faction": "Faction",
+    "back": "Retour",
+    "chooseFaction": "Quelle faction exporter ?",
+    "noFaction": "Aucune faction à exporter",
+    "export": {
+      "title": "Exporter",
+      "profileHint": "Le profil complet : factions, quêtes, progression et historique.",
+      "factionHint": "Une faction et ses quêtes, à partager ou à réutiliser."
+    },
+    "import": {
+      "title": "Importer",
+      "profileHint": "Ajouté comme nouveau profil, sans toucher au profil actuel.",
+      "factionHint": "Ajoutée au profil actuel avec ses quêtes."
+    }
   }
 }

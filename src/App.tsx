@@ -10,6 +10,7 @@ import { QuestCard } from './components/QuestCard';
 import { QuestFormModal, QuestFormData } from './components/QuestFormModal';
 import { FactionFormModal, FactionFormData } from './components/FactionFormModal';
 import { HistoryModal } from './components/HistoryModal';
+import { TransferModal, TransferMode } from './components/TransferModal';
 import { IconImage } from './components/IconImage';
 import { PlayerSelectScreen } from './components/PlayerSelectScreen';
 import { ToastContainer } from './components/ToastContainer';
@@ -17,9 +18,10 @@ import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { isQuestCompleted } from './utils/gameLogic';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft, History } from 'lucide-react';
+import { Download, Upload, RotateCcw, Plus, Settings, ChevronLeft, History, Moon, Sun } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
-import { THEMES } from './utils/themes';
+import { THEME_IDS, ThemeId } from './utils/themes';
+import { downloadJson, pickJsonFile } from './utils/file';
 
 type QuestModalState =
   | { mode: 'create'; defaultFactionId: FactionId }
@@ -35,11 +37,17 @@ function GameApp({
   onUpdateGameState,
   onSwitchPlayer,
   onExportPlayer,
+  onImportPlayer,
+  themeId,
+  onThemeChange,
 }: {
   player: Player;
   onUpdateGameState: (updater: GameState | ((prev: GameState) => GameState)) => void;
   onSwitchPlayer: () => void;
   onExportPlayer: () => void;
+  onImportPlayer: (jsonString: string) => boolean;
+  themeId: ThemeId;
+  onThemeChange: (id: ThemeId) => void;
 }) {
   const { toasts, showToast, removeToast } = useToast();
   const { confirm, confirmDialog } = useConfirm();
@@ -62,7 +70,6 @@ function GameApp({
     deleteFaction,
     reorderFactions,
     resetAllData,
-    importData,
     importFaction,
   } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp, confirm);
 
@@ -76,7 +83,6 @@ function GameApp({
     reorderFactions(arrayMove(gameState.factions, oldIndex, newIndex));
   };
 
-  const { themeId, setThemeId } = useTheme();
   const { t, i18n } = useTranslation();
 
   const [modal, setModal] = useState<QuestModalState | null>(null);
@@ -84,6 +90,7 @@ function GameApp({
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState<TransferMode | null>(null);
   const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
   const [mobileView, setMobileView] = useState<'factions' | 'quests'>('factions');
   const menuRef = useRef<HTMLDivElement>(null);
@@ -98,46 +105,17 @@ function GameApp({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => { importData(event.target?.result as string); };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
-  };
-
   const handleExportFaction = (faction: Faction) => {
     const quests = gameState.quests.filter(q => q.factionId === faction.id);
-    const blob = new Blob([JSON.stringify({ faction, quests }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `faction-${faction.name.toLowerCase()}-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson({ faction, quests }, `faction-${faction.name.toLowerCase()}-${Date.now()}.json`);
   };
 
-  const handleImportFaction = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => { importFaction(event.target?.result as string); };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
-  };
+  const handleImportFaction = () => pickJsonFile(importFaction);
+
+  const handleImportPlayer = () =>
+    pickJsonFile(content => {
+      if (!onImportPlayer(content)) showToast(t('toast.profileImportError'), 'error');
+    });
 
   const handleSave = (data: QuestFormData) => {
     if (modal?.mode === 'edit') {
@@ -199,7 +177,7 @@ function GameApp({
           <Settings size={16} />
         </button>
         {menuOpen && (
-          <div className="absolute top-11 left-0 bg-bg-card border border-gray-700 rounded-lg shadow-xl overflow-hidden w-44">
+          <div className="absolute top-11 left-0 bg-bg-card border border-gray-700 rounded-lg shadow-xl overflow-hidden w-52">
             <button
               onClick={() => { setHistoryOpen(true); setMenuOpen(false); }}
               className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
@@ -207,44 +185,44 @@ function GameApp({
               <History size={14} />
               {t('app.settings.history')}
             </button>
-            <div className="border-t border-gray-700" />
-            <button
-              onClick={() => { onExportPlayer(); setMenuOpen(false); }}
-              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
-            >
-              <Download size={14} />
-              {t('app.settings.export')}
-            </button>
-            <button
-              onClick={() => { handleImport(); setMenuOpen(false); }}
-              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
-            >
-              <Upload size={14} />
-              {t('app.settings.import')}
-            </button>
-            <button
-              onClick={() => { handleImportFaction(); setMenuOpen(false); }}
-              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
-            >
-              <Upload size={14} />
-              {t('faction.importFaction')}
-            </button>
+            <div className="grid grid-cols-2 border-t border-gray-700">
+              <button
+                onClick={() => { setTransferMode('import'); setMenuOpen(false); }}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/5 transition-colors border-r border-gray-700"
+              >
+                <Upload size={14} />
+                {t('app.settings.import')}
+              </button>
+              <button
+                onClick={() => { setTransferMode('export'); setMenuOpen(false); }}
+                className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
+              >
+                <Download size={14} />
+                {t('app.settings.export')}
+              </button>
+            </div>
             <div className="border-t border-gray-700" />
             <div className="px-4 py-2.5">
               <p className="text-xs text-gray-500 mb-2">{t('app.settings.theme')}</p>
-              <div className="flex gap-2">
-                {THEMES.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setThemeId(t.id)}
-                    title={t.label}
-                    className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
-                    style={{
-                      backgroundColor: t.cardBg,
-                      borderColor: themeId === t.id ? 'white' : 'transparent',
-                    }}
-                  />
-                ))}
+              <div className="flex gap-1.5">
+                {THEME_IDS.map(id => {
+                  const Icon = id === 'dark' ? Moon : Sun;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => onThemeChange(id)}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-xs rounded transition-colors font-bold"
+                      style={{
+                        backgroundColor: themeId === id ? 'var(--theme-outline)' : 'transparent',
+                        color: themeId === id ? 'rgb(var(--c-white))' : 'rgb(var(--c-gray-500))',
+                        border: '1px solid var(--theme-outline)',
+                      }}
+                    >
+                      <Icon size={12} />
+                      {t(`app.settings.themes.${id}`)}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="border-t border-gray-700" />
@@ -258,7 +236,7 @@ function GameApp({
                     className="flex-1 px-2 py-1 text-xs rounded transition-colors font-bold"
                     style={{
                       backgroundColor: i18n.language === lang ? 'var(--theme-outline)' : 'transparent',
-                      color: i18n.language === lang ? 'white' : '#6b7280',
+                      color: i18n.language === lang ? 'rgb(var(--c-white))' : 'rgb(var(--c-gray-500))',
                       border: '1px solid var(--theme-outline)',
                     }}
                   >
@@ -366,8 +344,8 @@ function GameApp({
                       className="px-3 py-1 text-xs rounded-full border transition-colors"
                       style={{
                         backgroundColor: questFilter === f ? selectedFaction.color + '22' : 'transparent',
-                        borderColor: questFilter === f ? selectedFaction.color + '88' : '#374151',
-                        color: questFilter === f ? selectedFaction.color : '#6b7280',
+                        borderColor: questFilter === f ? selectedFaction.color + '88' : 'rgb(var(--c-gray-700))',
+                        color: questFilter === f ? selectedFaction.color : 'rgb(var(--c-gray-500))',
                       }}
                     >
                       {t(`quest.filter.${f === 'all' ? 'all' : f === 'incomplete' ? 'todo' : 'done'}`)}
@@ -419,6 +397,22 @@ function GameApp({
       {/* Modal faction */}
       {historyOpen && (
         <HistoryModal history={gameState.history ?? []} onClose={() => setHistoryOpen(false)} />
+      )}
+
+      {transferMode && (
+        <TransferModal
+          mode={transferMode}
+          factions={gameState.factions}
+          onProfile={() => {
+            if (transferMode === 'export') onExportPlayer(); else handleImportPlayer();
+            setTransferMode(null);
+          }}
+          onFaction={(faction) => {
+            if (transferMode === 'export') { if (faction) handleExportFaction(faction); } else handleImportFaction();
+            setTransferMode(null);
+          }}
+          onClose={() => setTransferMode(null)}
+        />
       )}
 
       {factionModal && (
@@ -475,23 +469,13 @@ function App() {
 
   const [showSelectScreen, setShowSelectScreen] = useState(false);
 
-  const handleImportPlayer = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          importPlayer(event.target?.result as string);
-          setShowSelectScreen(false);
-        };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
-  };
+  const { themeId, setThemeId } = useTheme();
+
+  const handleImportPlayer = () =>
+    pickJsonFile(content => {
+      importPlayer(content);
+      setShowSelectScreen(false);
+    });
 
   // Afficher l'écran de sélection si pas de joueur actif ou si demandé
   if (!activePlayer || showSelectScreen) {
@@ -515,6 +499,9 @@ function App() {
       onUpdateGameState={updateActiveGameState}
       onSwitchPlayer={() => setShowSelectScreen(true)}
       onExportPlayer={() => exportPlayer(activePlayer.id)}
+      onImportPlayer={importPlayer}
+      themeId={themeId}
+      onThemeChange={setThemeId}
     />
   );
 }

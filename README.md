@@ -63,12 +63,13 @@ src/
 │   ├── HistoryModal.tsx       # Historique des actions, groupé par jour
 │   ├── ImageUploadField.tsx   # Champ d'import d'image (avatar / icône faction)
 │   ├── IconImage.tsx          # Affiche l'image importée, sinon l'emoji
+│   ├── TransferModal.tsx      # Modale Import / Export (profil ou faction)
 │   └── ToastContainer.tsx     # Notifications
 ├── hooks/
 │   ├── useConfirm.tsx         # Modale de confirmation (remplace window.confirm)
 │   ├── usePlayers.ts          # Store multi-joueurs (localStorage)
 │   ├── useGameState.ts        # Logique de jeu (découplée du stockage)
-│   ├── useTheme.ts            # Gestion des thèmes visuels
+│   ├── useTheme.ts            # Thème clair / sombre (data-theme sur <html>)
 │   └── useToast.ts            # Système de notifications
 ├── i18n/
 │   ├── index.ts               # Config i18next (langue persistée en localStorage)
@@ -78,10 +79,11 @@ src/
 ├── types/
 │   └── index.ts               # Tous les types TypeScript
 ├── utils/
+│   ├── file.ts                # Téléchargement / lecture de fichiers JSON
 │   ├── gameLogic.ts           # XP, level up/down, resets, historique
 │   ├── image.ts               # Recadrage/réduction des images importées
 │   ├── initialData.ts         # Données de départ
-│   └── themes.ts              # Définitions des 5 thèmes visuels
+│   └── themes.ts              # Thèmes clair / sombre + migration des anciens thèmes
 └── App.tsx                    # Orchestration + routing joueur
 ```
 
@@ -126,16 +128,13 @@ Pas besoin de gérer manuellement la réinitialisation des états locaux.
 
 ### Système de thèmes via CSS custom properties
 
-5 thèmes dark définis dans `themes.ts` avec 3 valeurs hex (`bg`, `cardBg`, `outline`). `useTheme` convertit ces hex en RGB pour le support des modificateurs d'opacité Tailwind et injecte les vars CSS sur `:root` :
+Deux thèmes, sombre (par défaut) et clair. `useTheme` pose `data-theme` sur `<html>` et `index.css` définit les variables pour chacun :
 
-```typescript
-root.style.setProperty('--theme-bg', theme.bg);
-root.style.setProperty('--theme-card-bg', theme.cardBg);
-root.style.setProperty('--theme-outline', theme.outline);
-// + --color-bg-dark / --color-bg-card en format "R G B" pour Tailwind
-```
+- `--theme-bg`, `--theme-card-bg`, `--theme-outline` pour les fonds et contours ;
+- `--color-bg-dark` / `--color-bg-card` en format "R G B" pour les modificateurs d'opacité Tailwind ;
+- `--c-white` et `--c-gray-100` à `--c-gray-900`, branchées sur les couleurs `white` et `gray-*` de Tailwind. En clair, l'échelle est inversée : `text-white` devient le texte foncé, `border-gray-700` une bordure claire. Les composants n'ont donc pas de classes spécifiques au thème. Pour du texte blanc sur un fond coloré (boutons, badges), utiliser `text-on-accent`.
 
-Le thème est persisté dans `renown-tracker-theme`.
+Le thème est persisté dans `renown-tracker-theme`. Les 5 anciens thèmes sombres (`ardoise`, `nuit`…) sont migrés vers le thème sombre au chargement.
 
 ### Lien quête journalière → hebdo (`linkedWeeklyQuestId`)
 
@@ -264,7 +263,7 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Système de streak
 - [x] Multi-joueurs
 - [x] Animations level-up (faction card + barre XP)
-- [x] Système de thèmes visuels (5 thèmes dark)
+- [x] Thème clair / sombre
 - [x] Niveau global du joueur (découplé des factions)
 - [x] Lien quête journalière → hebdo (auto-incrément)
 - [x] Dévalidation avec régression de niveau
@@ -273,7 +272,7 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Filtres et tri des quêtes, cartes repliables
 - [x] Quêtes mensuelles et annuelles
 - [x] Drag & drop des factions
-- [x] Export/import de profil et de faction
+- [x] Export/import de profil et de faction (modale dédiée depuis les paramètres)
 - [x] Reset des quêtes même si l'onglet reste ouvert
 - [x] Historique des actions
 - [x] Image importée pour l'avatar et les icônes de faction

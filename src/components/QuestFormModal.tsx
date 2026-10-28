@@ -223,7 +223,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
               className={`relative w-10 h-5 rounded-full transition-colors ${form.followStreak ? 'bg-accent-purple' : 'bg-gray-600'}`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.followStreak ? 'translate-x-5' : 'translate-x-0'}`}
+                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-on-accent rounded-full shadow transition-transform ${form.followStreak ? 'translate-x-5' : 'translate-x-0'}`}
               />
             </button>
           </div>
@@ -239,7 +239,7 @@ export function QuestFormModal({ initialData, defaultFactionId, factions, quests
             </button>
             <button
               type="submit"
-              className="flex-1 bg-accent-purple hover:bg-accent-purple/80 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="flex-1 bg-accent-purple hover:bg-accent-purple/80 text-on-accent font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               {initialData ? t('common.edit') : t('common.create')}
             </button>

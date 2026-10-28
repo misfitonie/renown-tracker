@@ -29,6 +29,13 @@ export default {
         xpSurge:         'xpSurge 0.6s ease-out',
       },
       colors: {
+        // Pilotées par le thème (index.css)
+        white: 'rgb(var(--c-white) / <alpha-value>)',
+        gray: Object.fromEntries(
+          [100, 200, 300, 400, 500, 600, 700, 800, 900].map(n => [n, `rgb(var(--c-gray-${n}) / <alpha-value>)`])
+        ),
+        // Texte sur fond coloré (boutons, badges) : blanc dans tous les thèmes
+        'on-accent': '#ffffff',
         'bg-dark': 'rgb(var(--color-bg-dark) / <alpha-value>)',
         'bg-card': 'rgb(var(--color-bg-card) / <alpha-value>)',
         'accent-gold': '#d4af37',

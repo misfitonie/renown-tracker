@@ -399,17 +399,6 @@ export function useGameState(
   };
 
   // Import du gameState actif
-  const importData = (jsonString: string) => {
-    try {
-      const data = JSON.parse(jsonString);
-      setGameState(data);
-      showToast(i18n.t('toast.importSuccess'), 'success');
-    } catch (e) {
-      showToast(i18n.t('toast.importError'), 'error');
-      console.error(e);
-    }
-  };
-
   // Import d'une faction exportée (génère de nouveaux IDs pour éviter les conflits)
   const importFaction = (jsonString: string) => {
     try {
@@ -451,7 +440,6 @@ export function useGameState(
     reorderFactions,
     resetAllData,
     exportData,
-    importData,
     importFaction,
   };
 }

@@ -24,7 +24,11 @@
       "theme": "Theme",
       "language": "Language",
       "reset": "Reset",
-      "history": "History"
+      "history": "History",
+      "themes": {
+        "dark": "Dark",
+        "light": "Light"
+      }
     },
     "confirm": {
       "reset": "Are you sure you want to reset all your data?"
@@ -45,7 +49,6 @@
     "headerLevel": "Level {{level}} · {{current}} / {{max}} XP",
     "deleteConfirm": "Delete this faction and all its quests permanently?",
     "exportFaction": "Export faction",
-    "importFaction": "Import faction",
     "modal": {
       "titleEdit": "Edit faction",
       "titleCreate": "New faction",
@@ -110,10 +113,9 @@
   "toast": {
     "factionLevelUp": "🎉 {{name}} level {{level}}!",
     "weeklyCompleted": "✅ Weekly quest \"{{title}}\" completed!",
-    "importSuccess": "Data imported successfully!",
-    "importError": "Error importing data",
     "factionImportSuccess": "Faction imported successfully!",
-    "factionImportError": "Error importing faction"
+    "factionImportError": "Error importing faction",
+    "profileImportError": "This file is not a valid profile"
   },
   "history": {
     "title": "History",
@@ -126,5 +128,22 @@
     "player_level_down": "Back to player level {{level}}",
     "today": "Today",
     "yesterday": "Yesterday"
+  },
+  "transfer": {
+    "profile": "Profile",
+    "faction": "Faction",
+    "back": "Back",
+    "chooseFaction": "Which faction to export?",
+    "noFaction": "No faction to export",
+    "export": {
+      "title": "Export",
+      "profileHint": "The whole profile: factions, quests, progress and history.",
+      "factionHint": "One faction and its quests, to share or reuse."
+    },
+    "import": {
+      "title": "Import",
+      "profileHint": "Added as a new profile, the current one is left untouched.",
+      "factionHint": "Added to the current profile with its quests."
+    }
   }
 }
