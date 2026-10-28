@@ -107,7 +107,7 @@ export function FactionFormModal({ initialData, onSave, onClose }: FactionFormMo
             </button>
             <button
               type="submit"
-              className="flex-1 bg-accent-purple hover:bg-accent-purple/80 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="flex-1 bg-accent-purple hover:bg-accent-purple/80 text-on-accent font-semibold px-4 py-2 rounded-lg transition-colors"
             >
               {initialData ? t('common.edit') : t('common.create')}
             </button>

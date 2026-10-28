@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Player, PlayersStore, GameState } from '../types';
 import { getInitialGameState } from '../utils/initialData';
+import { downloadJson } from '../utils/file';
 
 const PLAYERS_KEY = 'renown-tracker';
 const LEGACY_KEY = 'renown-tracker-state';
@@ -98,13 +99,7 @@ export function usePlayers() {
   const exportPlayer = (playerId: string) => {
     const player = store.players.find(p => p.id === playerId);
     if (!player) return;
-    const blob = new Blob([JSON.stringify(player, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `renown-${player.name}-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadJson(player, `renown-${player.name}-${new Date().toISOString().slice(0, 10)}.json`);
   };
 
   const importPlayer = (jsonString: string): boolean => {

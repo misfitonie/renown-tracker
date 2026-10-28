@@ -2,16 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Thèmes : les couleurs `white` et `gray-*` de Tailwind pointent sur ces variables
+ * (voir tailwind.config.js). En clair, l'échelle est inversée : `text-white` devient
+ * le texte principal foncé, `border-gray-700` une bordure claire, etc.
+ * Valeurs RGB séparées par des espaces pour les modificateurs d'opacité (`/50`).
+ */
 :root {
+  color-scheme: dark;
   --theme-bg: #18181A;
-  --theme-card-bg: #1E1F23;
+  --theme-card-bg: #323336;
   --theme-outline: #2d2e33;
+  --theme-glow: #1a1430;
   --color-bg-dark: 24 24 26;
-  --color-bg-card: 30 31 35;
+  --color-bg-card: 50 51 54;
+  --c-white: 255 255 255;
+  --c-gray-100: 243 244 246;
+  --c-gray-200: 229 231 235;
+  --c-gray-300: 209 213 219;
+  --c-gray-400: 156 163 175;
+  --c-gray-500: 107 114 128;
+  --c-gray-600: 75 85 99;
+  --c-gray-700: 55 65 81;
+  --c-gray-800: 31 41 55;
+  --c-gray-900: 17 24 39;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --theme-bg: #eef0f4;
+  --theme-card-bg: #ffffff;
+  --theme-outline: #dcdfe6;
+  --theme-glow: #e6def6;
+  --color-bg-dark: 238 240 244;
+  --color-bg-card: 255 255 255;
+  --c-white: 24 24 27;
+  --c-gray-100: 17 24 39;
+  --c-gray-200: 31 41 55;
+  --c-gray-300: 55 65 81;
+  --c-gray-400: 75 85 99;
+  --c-gray-500: 107 114 128;
+  --c-gray-600: 156 163 175;
+  --c-gray-700: 209 213 219;
+  --c-gray-800: 229 231 235;
+  --c-gray-900: 243 244 246;
 }
 
 body {
   margin: 0;
+  background-color: var(--theme-bg);
   font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

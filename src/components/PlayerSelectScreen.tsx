@@ -49,7 +49,7 @@ export function PlayerSelectScreen({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bg-dark via-[#1a1430] to-bg-dark flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-bg-dark via-[var(--theme-glow)] to-bg-dark flex flex-col items-center justify-center p-8">
       {/* Gradient overlay */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,_rgba(157,78,221,0.1)_0%,_transparent_50%)]" />

@@ -15,8 +15,8 @@ interface QuestCardProps {
 }
 
 const TYPE_BADGE: Record<string, { key: string; color: string }> = {
-  weekly:  { key: 'quest.weeklyBadge',  color: 'bg-accent-purple text-white' },
-  monthly: { key: 'quest.monthlyBadge', color: 'bg-orange-500/80 text-white' },
+  weekly:  { key: 'quest.weeklyBadge',  color: 'bg-accent-purple text-on-accent' },
+  monthly: { key: 'quest.monthlyBadge', color: 'bg-orange-500/80 text-on-accent' },
   yearly:  { key: 'quest.yearlyBadge',  color: 'bg-yellow-500/80 text-bg-dark' },
 };
 
@@ -90,7 +90,7 @@ export function QuestCard({ quest, factionColor, onComplete, onUncomplete, onInc
           ) : quest.completionType === 'progress' ? (
             <button
               onClick={onIncrement}
-              className="bg-accent-blue hover:bg-accent-blue/80 text-white p-2 rounded-lg transition-colors"
+              className="bg-accent-blue hover:bg-accent-blue/80 text-on-accent p-2 rounded-lg transition-colors"
               title={t('quest.button.increment')}
             >
               <Plus size={20} />
