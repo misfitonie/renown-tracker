@@ -10,7 +10,7 @@ import { QuestCard } from './components/QuestCard';
 import { QuestFormModal, QuestFormData } from './components/QuestFormModal';
 import { FactionFormModal, FactionFormData } from './components/FactionFormModal';
 import { HistoryModal } from './components/HistoryModal';
-import { TransferModal, TransferMode } from './components/TransferModal';
+import { TransferModal } from './components/TransferModal';
 import { IconImage } from './components/IconImage';
 import { ProfileSetupScreen } from './components/ProfileSetupScreen';
 import { PlayerFormModal, PlayerFormData } from './components/PlayerFormModal';
@@ -43,7 +43,6 @@ function GameApp({
   onUpdateGameState,
   onEditPlayer,
   onExportPlayer,
-  onImportPlayer,
   themeId,
   onThemeChange,
   account,
@@ -53,7 +52,6 @@ function GameApp({
   onUpdateGameState: (updater: GameState | ((prev: GameState) => GameState)) => void;
   onEditPlayer: (data: PlayerFormData) => void;
   onExportPlayer: () => void;
-  onImportPlayer: (jsonString: string) => boolean;
   themeId: ThemeId;
   onThemeChange: (id: ThemeId) => void;
   account?: AccountInfo;
@@ -102,7 +100,7 @@ function GameApp({
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState(false);
-  const [transferMode, setTransferMode] = useState<TransferMode | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
   // Marketplace (comptes Supabase activés) ; publishFactionId ouvre directement la publication
   const [marketplace, setMarketplace] = useState<{ publishFactionId?: string } | null>(null);
   const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
@@ -125,12 +123,6 @@ function GameApp({
   };
 
   const handleImportFaction = () => pickJsonFile(importFaction);
-
-  const handleImportPlayer = () =>
-    pickJsonFile(async content => {
-      if (!(await confirm(t('player.importConfirm')))) return;
-      if (!onImportPlayer(content)) showToast(t('toast.profileImportError'), 'error');
-    });
 
   const handleSave = (data: QuestFormData) => {
     if (modal?.mode === 'edit') {
@@ -217,14 +209,15 @@ function GameApp({
             )}
             <div className="grid grid-cols-2 border-t border-gray-700">
               <button
-                onClick={() => { setTransferMode('import'); setMenuOpen(false); }}
+                onClick={() => { handleImportFaction(); setMenuOpen(false); }}
+                title={t('app.settings.importFaction')}
                 className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/5 transition-colors border-r border-gray-700"
               >
                 <Upload size={14} />
                 {t('app.settings.import')}
               </button>
               <button
-                onClick={() => { setTransferMode('export'); setMenuOpen(false); }}
+                onClick={() => { setExportOpen(true); setMenuOpen(false); }}
                 className="flex items-center justify-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/5 transition-colors"
               >
                 <Download size={14} />
@@ -455,19 +448,12 @@ function GameApp({
         />
       )}
 
-      {transferMode && (
+      {exportOpen && (
         <TransferModal
-          mode={transferMode}
           factions={gameState.factions}
-          onProfile={() => {
-            if (transferMode === 'export') onExportPlayer(); else handleImportPlayer();
-            setTransferMode(null);
-          }}
-          onFaction={(faction) => {
-            if (transferMode === 'export') { if (faction) handleExportFaction(faction); } else handleImportFaction();
-            setTransferMode(null);
-          }}
-          onClose={() => setTransferMode(null)}
+          onProfile={() => { onExportPlayer(); setExportOpen(false); }}
+          onFaction={(faction) => { handleExportFaction(faction); setExportOpen(false); }}
+          onClose={() => setExportOpen(false)}
         />
       )}
 
@@ -532,14 +518,14 @@ function ProfileApp({
 }) {
   const {
     player,
-    loaded,
+    remoteChecked,
     syncStatus,
     hasPendingChanges,
     updateGameState,
     createProfile,
     editProfile,
     exportProfile,
-    importProfile,
+    syncNow,
   } = useProfile(userId);
 
   const { confirm, confirmDialog } = useConfirm();
@@ -561,16 +547,18 @@ function ProfileApp({
       }
     : undefined;
 
-  // Pas encore de personnage : création (ou import)
+  // Pas encore de personnage : création, une seule fois. Connecté, on attend d'avoir la réponse
+  // du serveur (le compte a peut-être déjà un personnage, créé sur un autre appareil).
   if (!player) {
+    const offline = syncStatus === 'offline' || syncStatus === 'error';
     return (
       <>
         <ProfileSetupScreen
           onCreate={createProfile}
           userId={userId}
-          onImport={() => pickJsonFile(importProfile)}
           account={account}
-          loading={!loaded}
+          loading={!remoteChecked}
+          onRetry={offline ? () => void syncNow() : undefined}
         />
         {confirmDialog}
       </>
@@ -585,7 +573,6 @@ function ProfileApp({
         onUpdateGameState={updateGameState}
         onEditPlayer={editProfile}
         onExportPlayer={exportProfile}
-        onImportPlayer={importProfile}
         themeId={themeId}
         onThemeChange={onThemeChange}
         account={account}

@@ -21,6 +21,7 @@
     "settings": {
       "export": "Export",
       "import": "Import",
+      "importFaction": "Importer une faction",
       "theme": "Thème",
       "language": "Langue",
       "reset": "Reset",
@@ -39,9 +40,9 @@
     "editProfile": "Modifier mon personnage",
     "setupTitle": "Créez votre personnage",
     "setupHint": "Votre personnage gagne des niveaux avec vos factions.",
-    "importProfile": "Importer un profil",
-    "importConfirm": "Le profil importé remplacera votre personnage actuel (factions, quêtes, progression et historique). Continuer ?",
     "loading": "Récupération de votre personnage…",
+    "loadError": "Impossible de joindre le serveur pour récupérer votre personnage. Vérifiez votre connexion.",
+    "retry": "Réessayer",
     "form": {
       "name": "Nom",
       "namePlaceholder": "Ex : Théo",
@@ -129,7 +130,6 @@
     "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",
     "factionImportSuccess": "Faction importée avec succès !",
     "factionImportError": "Erreur lors de l'import de la faction",
-    "profileImportError": "Ce fichier n'est pas un profil valide",
     "factionInstalled": "{{name}} a rejoint vos factions !"
   },
   "history": {
@@ -154,11 +154,6 @@
       "title": "Exporter",
       "profileHint": "Le profil complet : factions, quêtes, progression et historique.",
       "factionHint": "Une faction et ses quêtes, à partager ou à réutiliser."
-    },
-    "import": {
-      "title": "Importer",
-      "profileHint": "Remplace votre personnage actuel.",
-      "factionHint": "Ajoutée à votre profil avec ses quêtes."
     }
   },
   "marketplace": {

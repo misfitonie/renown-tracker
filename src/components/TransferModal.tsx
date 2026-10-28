@@ -4,19 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { Faction } from '../types';
 import { IconImage } from './IconImage';
 
-export type TransferMode = 'import' | 'export';
-
 interface TransferModalProps {
-  mode: TransferMode;
   factions: Faction[];
   onProfile: () => void;
-  onFaction: (faction?: Faction) => void;
+  onFaction: (faction: Faction) => void;
   onClose: () => void;
 }
 
-// Modale d'import / export : on choisit d'abord Profil ou Faction.
-// À l'export d'une faction, une seconde étape permet de choisir laquelle.
-export function TransferModal({ mode, factions, onProfile, onFaction, onClose }: TransferModalProps) {
+// Modale d'export : on choisit d'abord Profil ou Faction, puis la faction à exporter.
+// (L'import ne concerne que les factions : un profil ne se remplace pas, il se crée à la première connexion.)
+export function TransferModal({ factions, onProfile, onFaction, onClose }: TransferModalProps) {
   const { t } = useTranslation();
   const [pickFaction, setPickFaction] = useState(false);
 
@@ -33,8 +30,8 @@ export function TransferModal({ mode, factions, onProfile, onFaction, onClose }:
     {
       key: 'faction',
       Icon: Flag,
-      onClick: () => (mode === 'export' ? setPickFaction(true) : onFaction()),
-      disabled: mode === 'export' && factions.length === 0,
+      onClick: () => setPickFaction(true),
+      disabled: factions.length === 0,
     },
   ] as const;
 
@@ -50,7 +47,7 @@ export function TransferModal({ mode, factions, onProfile, onFaction, onClose }:
               </button>
             )}
             <h2 className="text-xl font-title text-accent-gold">
-              {pickFaction ? t('transfer.chooseFaction') : t(`transfer.${mode}.title`)}
+              {pickFaction ? t('transfer.chooseFaction') : t('transfer.export.title')}
             </h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
@@ -87,7 +84,7 @@ export function TransferModal({ mode, factions, onProfile, onFaction, onClose }:
                 <Icon size={28} className="text-accent-purple" />
                 <span className="font-title text-white">{t(`transfer.${key}`)}</span>
                 <span className="text-xs text-gray-500">
-                  {disabled ? t('transfer.noFaction') : t(`transfer.${mode}.${key}Hint`)}
+                  {disabled ? t('transfer.noFaction') : t(`transfer.export.${key}Hint`)}
                 </span>
               </button>
             ))}
