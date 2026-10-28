@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Faction } from '../types';
+import { ImageUploadField } from './ImageUploadField';
+import { IconImage } from './IconImage';
 
 export interface FactionFormData {
   name: string;
   icon: string;
   color: string;
+  image?: string;
 }
 
 interface FactionFormModalProps {
@@ -21,6 +24,7 @@ export function FactionFormModal({ initialData, onSave, onClose }: FactionFormMo
     name: initialData?.name ?? '',
     icon: initialData?.icon ?? '⚔️',
     color: initialData?.color ?? '#9d4edd',
+    image: initialData?.image,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -83,9 +87,11 @@ export function FactionFormModal({ initialData, onSave, onClose }: FactionFormMo
             </div>
           </div>
 
+          <ImageUploadField image={form.image} onChange={image => setForm(f => ({ ...f, image }))} />
+
           {/* Aperçu */}
           <div className="flex items-center gap-3 bg-bg-dark rounded-lg px-4 py-3 border border-gray-700">
-            <span className="text-2xl">{form.icon || '?'}</span>
+            <IconImage image={form.image} emoji={form.icon || '?'} className="text-2xl" imageClassName="w-8 h-8" />
             <span className="font-title text-base" style={{ color: form.color }}>
               {form.name || t('faction.modal.previewLabel')}
             </span>

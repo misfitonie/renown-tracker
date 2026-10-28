@@ -6,7 +6,15 @@
     "delete": "Supprimer",
     "level": "Niv.",
     "xp": "XP",
-    "gems": "Gemmes"
+    "gems": "Gemmes",
+    "image": {
+      "label": "Image (optionnelle, remplace l'emoji)",
+      "upload": "Importer une image",
+      "change": "Changer l'image",
+      "remove": "Retirer",
+      "hint": "Recadrée en carré et réduite à 128 px.",
+      "error": "Ce fichier n'est pas une image valide."
+    }
   },
   "app": {
     "settings": {

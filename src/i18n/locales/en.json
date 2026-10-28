@@ -6,7 +6,15 @@
     "delete": "Delete",
     "level": "Lv.",
     "xp": "XP",
-    "gems": "Gems"
+    "gems": "Gems",
+    "image": {
+      "label": "Image (optional, replaces the emoji)",
+      "upload": "Upload an image",
+      "change": "Change image",
+      "remove": "Remove",
+      "hint": "Cropped to a square and resized to 128 px.",
+      "error": "This file is not a valid image."
+    }
   },
   "app": {
     "settings": {

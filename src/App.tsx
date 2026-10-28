@@ -9,6 +9,7 @@ import { QuestCard } from './components/QuestCard';
 import { QuestFormModal, QuestFormData } from './components/QuestFormModal';
 import { FactionFormModal, FactionFormData } from './components/FactionFormModal';
 import { HistoryModal } from './components/HistoryModal';
+import { IconImage } from './components/IconImage';
 import { PlayerSelectScreen } from './components/PlayerSelectScreen';
 import { ToastContainer } from './components/ToastContainer';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
@@ -328,7 +329,7 @@ function GameApp({
                 {/* En-tête faction */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-3xl">{selectedFaction.icon}</span>
+                    <IconImage image={selectedFaction.image} emoji={selectedFaction.icon} className="text-3xl" imageClassName="w-10 h-10" />
                     <div>
                       <h2 className="text-2xl font-title text-white">{selectedFaction.name}</h2>
                       <p className="text-sm" style={{ color: selectedFaction.color }}>

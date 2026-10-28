@@ -348,6 +348,7 @@ export function useGameState(
         id,
         name: data.name,
         icon: data.icon,
+        image: data.image,
         color: data.color,
         renownLevel: 0,
         currentXP: 0,

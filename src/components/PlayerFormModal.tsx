@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Player } from '../types';
+import { ImageUploadField } from './ImageUploadField';
+import { IconImage } from './IconImage';
 
 export interface PlayerFormData {
   name: string;
   emoji: string;
   color: string;
+  avatar?: string;
 }
 
 interface PlayerFormModalProps {
@@ -19,6 +22,7 @@ export function PlayerFormModal({ initialData, onSave, onClose }: PlayerFormModa
     name: initialData?.name ?? '',
     emoji: initialData?.emoji ?? '🧙',
     color: initialData?.color ?? '#9d4edd',
+    avatar: initialData?.avatar,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,12 +86,14 @@ export function PlayerFormModal({ initialData, onSave, onClose }: PlayerFormModa
             </div>
           </div>
 
+          <ImageUploadField image={form.avatar} onChange={avatar => setForm(f => ({ ...f, avatar }))} />
+
           {/* Aperçu */}
           <div
             className="flex items-center gap-3 rounded-lg px-4 py-3 border"
             style={{ borderColor: `${form.color}44`, backgroundColor: `${form.color}11` }}
           >
-            <span className="text-3xl">{form.emoji || '?'}</span>
+            <IconImage image={form.avatar} emoji={form.emoji || '?'} className="text-3xl" imageClassName="w-9 h-9" />
             <span className="font-title text-base" style={{ color: form.color }}>
               {form.name || 'Aperçu'}
             </span>

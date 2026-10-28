@@ -33,6 +33,7 @@ export interface Faction {
   id: FactionId;
   name: string;
   icon: string;
+  image?: string; // image importée (data URL), prioritaire sur l'icône
   color: string;  // couleur pour le UI (hex)
   renownLevel: number;
   currentXP: number;
@@ -79,6 +80,7 @@ export interface Player {
   id: string;
   name: string;
   emoji: string;
+  avatar?: string; // image importée (data URL), prioritaire sur l'emoji
   color: string;
   createdAt: string;
   gameState: GameState;

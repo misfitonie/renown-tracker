@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, Download, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Player } from '../types';
 import { PlayerFormModal, PlayerFormData } from './PlayerFormModal';
+import { IconImage } from './IconImage';
 
 interface PlayerSelectScreenProps {
   players: Player[];
@@ -104,10 +105,10 @@ export function PlayerSelectScreen({
               {/* Contenu */}
               <div className="flex flex-col items-center gap-3">
                 <div
-                  className="w-16 h-16 rounded-full flex items-center justify-center text-3xl border-2"
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-3xl border-2 overflow-hidden"
                   style={{ borderColor: player.color, backgroundColor: `${player.color}22` }}
                 >
-                  {player.emoji}
+                  <IconImage image={player.avatar} emoji={player.emoji} imageClassName="w-full h-full" />
                 </div>
                 <span className="font-title text-white text-center">{player.name}</span>
               </div>

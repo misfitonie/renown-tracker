@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Faction } from '../types';
+import { IconImage } from './IconImage';
 
 interface FactionCardProps {
   faction: Faction;
@@ -96,7 +97,7 @@ export function FactionCard({ faction, selected, levelUpTrigger = 0, onClick, on
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl leading-none">{faction.icon}</span>
+          <IconImage image={faction.image} emoji={faction.icon} className="text-2xl leading-none" imageClassName="w-9 h-9" />
         </div>
       </div>
 
