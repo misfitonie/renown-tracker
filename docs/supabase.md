@@ -10,7 +10,8 @@ la sécurité repose sur les règles RLS de la table `players`.
 
 1. Sur <https://supabase.com/dashboard>, **New project** (offre gratuite). Région conseillée : `West EU (Paris)`.
    Garde le mot de passe de la base dans ton gestionnaire de mots de passe (l'app n'en a pas besoin).
-2. **SQL Editor** → **New query** → colle le contenu de [`supabase/migrations/0001_players.sql`](../supabase/migrations/0001_players.sql) → **Run**.
+2. **SQL Editor** → **New query** → colle le contenu de [`supabase/migrations/0001_players.sql`](../supabase/migrations/0001_players.sql) → **Run**,
+   puis de même avec [`0002_one_profile_per_account.sql`](../supabase/migrations/0002_one_profile_per_account.sql).
 3. **Table Editor** : vérifie que la table `players` existe avec le badge **RLS enabled**.
 
 ## 2. Email + mot de passe
@@ -64,14 +65,17 @@ En local : `cp .env.example .env.local` et remplis les deux valeurs (`.env.local
 
 ## Fonctionnement
 
-- **Table `players`** : une ligne par profil (`user_id`, `id`, `data` JSON du profil complet, `updated_at`).
+- **Table `players`** : une seule ligne par compte (`user_id`, `id`, `data` JSON du profil complet, `updated_at`),
+  garantie par la contrainte `players_one_per_account` (migration `0002_one_profile_per_account.sql`).
   Les règles RLS limitent chaque compte à ses propres lignes.
 - **Cache local par compte** (`renown-tracker:account:<userId>`) : l'app s'affiche immédiatement et fonctionne hors ligne.
-  Les profils modifiés sont marqués « en attente » et envoyés ~1,5 s après la dernière action, au retour du réseau,
+  Le profil modifié est marqué « en attente » (`dirty`) et envoyé ~1,5 s après la dernière action, au retour du réseau,
   au retour sur l'onglet et toutes les minutes.
-- **Conflits** : à chaque synchro, l'app récupère d'abord les profils du serveur. Pour chaque profil, la version
-  modifiée le plus récemment gagne (`updatedAt`). Un profil supprimé sur un appareil disparaît des autres.
-- **Migration** : à la première connexion sur un appareil, les profils du mode sans compte (clé `renown-tracker`)
-  sont rattachés au compte et envoyés. Une copie est gardée dans `renown-tracker-guest-backup`.
+- **Conflits** : à chaque synchro, l'app récupère d'abord le profil du serveur. La version modifiée le plus
+  récemment gagne (`updatedAt`).
+- **Migration** : à la première connexion sur un appareil, le profil du mode sans compte (clé `renown-tracker`)
+  est rattaché au compte si celui-ci n'a pas encore de profil. Si le compte en a déjà un, c'est celui du compte
+  qui est gardé. Dans les deux cas, une copie du profil sans compte reste dans `renown-tracker-guest-backup`.
+  Un profil local écarté à la synchro est aussi copié dans `renown-tracker-profiles-backup`.
 - **Mode sans compte** : toujours disponible depuis l'écran de connexion, données uniquement sur l'appareil.
 - **Déconnexion** : supprime le cache du compte sur l'appareil (avec confirmation s'il reste des changements non envoyés).

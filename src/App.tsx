@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGameState } from './hooks/useGameState';
-import { usePlayers } from './hooks/usePlayers';
+import { useProfile, clearAccountCache } from './hooks/useProfile';
 import { useToast } from './hooks/useToast';
 import { useConfirm } from './hooks/useConfirm';
 import { Header } from './components/Header';
@@ -12,11 +12,11 @@ import { FactionFormModal, FactionFormData } from './components/FactionFormModal
 import { HistoryModal } from './components/HistoryModal';
 import { TransferModal, TransferMode } from './components/TransferModal';
 import { IconImage } from './components/IconImage';
-import { PlayerSelectScreen } from './components/PlayerSelectScreen';
+import { ProfileSetupScreen } from './components/ProfileSetupScreen';
+import { PlayerFormModal, PlayerFormData } from './components/PlayerFormModal';
 import { AuthScreen } from './components/AuthScreen';
 import { AccountBar, AccountInfo } from './components/AccountBar';
 import { useAuth, Auth } from './hooks/useAuth';
-import { clearAccountCache } from './hooks/usePlayers';
 import { ToastContainer } from './components/ToastContainer';
 import { AppFooter } from './components/AppFooter';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
@@ -36,11 +36,11 @@ type FactionModalState =
   | { mode: 'create' }
   | { mode: 'edit'; faction: Faction };
 
-// Composant principal du jeu (remonté à chaque changement de joueur via key)
+// Composant principal du jeu (remonté si le profil est remplacé par un autre, via key)
 function GameApp({
   player,
   onUpdateGameState,
-  onSwitchPlayer,
+  onEditPlayer,
   onExportPlayer,
   onImportPlayer,
   themeId,
@@ -49,7 +49,7 @@ function GameApp({
 }: {
   player: Player;
   onUpdateGameState: (updater: GameState | ((prev: GameState) => GameState)) => void;
-  onSwitchPlayer: () => void;
+  onEditPlayer: (data: PlayerFormData) => void;
   onExportPlayer: () => void;
   onImportPlayer: (jsonString: string) => boolean;
   themeId: ThemeId;
@@ -97,6 +97,7 @@ function GameApp({
   const [selectedFactionId, setSelectedFactionId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState(false);
   const [transferMode, setTransferMode] = useState<TransferMode | null>(null);
   const [questFilter, setQuestFilter] = useState<'all' | 'incomplete' | 'complete'>('all');
   const [mobileView, setMobileView] = useState<'factions' | 'quests'>('factions');
@@ -120,7 +121,8 @@ function GameApp({
   const handleImportFaction = () => pickJsonFile(importFaction);
 
   const handleImportPlayer = () =>
-    pickJsonFile(content => {
+    pickJsonFile(async content => {
+      if (!(await confirm(t('player.importConfirm')))) return;
       if (!onImportPlayer(content)) showToast(t('toast.profileImportError'), 'error');
     });
 
@@ -276,7 +278,7 @@ function GameApp({
           player={player}
           playerXP={gameState.playerXP}
           playerLevel={gameState.playerLevel}
-          onSwitchPlayer={onSwitchPlayer}
+          onEditPlayer={() => setEditingPlayer(true)}
         />
 
         <div className="flex flex-col md:flex-row md:gap-14 items-start">
@@ -412,6 +414,14 @@ function GameApp({
         <HistoryModal history={gameState.history ?? []} onClose={() => setHistoryOpen(false)} />
       )}
 
+      {editingPlayer && (
+        <PlayerFormModal
+          initialData={player}
+          onSave={(data) => { onEditPlayer(data); setEditingPlayer(false); }}
+          onClose={() => setEditingPlayer(false)}
+        />
+      )}
+
       {transferMode && (
         <TransferModal
           mode={transferMode}
@@ -457,7 +467,7 @@ function GameApp({
 }
 
 
-function PlayersApp({
+function ProfileApp({
   auth,
   userId,
   themeId,
@@ -469,20 +479,17 @@ function PlayersApp({
   onThemeChange: (id: ThemeId) => void;
 }) {
   const {
-    store,
-    activePlayer,
+    player,
+    loaded,
     syncStatus,
     hasPendingChanges,
-    updateActiveGameState,
-    createPlayer,
-    editPlayer,
-    deletePlayer,
-    selectPlayer,
-    exportPlayer,
-    importPlayer,
-  } = usePlayers(userId);
+    updateGameState,
+    createProfile,
+    editProfile,
+    exportProfile,
+    importProfile,
+  } = useProfile(userId);
 
-  const [showSelectScreen, setShowSelectScreen] = useState(false);
   const { confirm, confirmDialog } = useConfirm();
   const { t } = useTranslation();
 
@@ -502,25 +509,15 @@ function PlayersApp({
       }
     : undefined;
 
-  const handleImportPlayer = () =>
-    pickJsonFile(content => {
-      importPlayer(content);
-      setShowSelectScreen(false);
-    });
-
-  // Afficher l'écran de sélection si pas de joueur actif ou si demandé
-  if (!activePlayer || showSelectScreen) {
+  // Pas encore de personnage : création (ou import)
+  if (!player) {
     return (
       <>
-        <PlayerSelectScreen
-          players={store.players}
-          onCreate={(data) => { createPlayer(data); setShowSelectScreen(false); }}
-          onEdit={editPlayer}
-          onDelete={deletePlayer}
-          onSelect={(id) => { selectPlayer(id); setShowSelectScreen(false); }}
-          onExport={exportPlayer}
-          onImport={handleImportPlayer}
+        <ProfileSetupScreen
+          onCreate={createProfile}
+          onImport={() => pickJsonFile(importProfile)}
           account={account}
+          loading={!loaded}
         />
         {confirmDialog}
       </>
@@ -530,12 +527,12 @@ function PlayersApp({
   return (
     <>
       <GameApp
-        key={activePlayer.id}
-        player={activePlayer}
-        onUpdateGameState={updateActiveGameState}
-        onSwitchPlayer={() => setShowSelectScreen(true)}
-        onExportPlayer={() => exportPlayer(activePlayer.id)}
-        onImportPlayer={importPlayer}
+        key={player.id}
+        player={player}
+        onUpdateGameState={updateGameState}
+        onEditPlayer={editProfile}
+        onExportPlayer={exportProfile}
+        onImportPlayer={importProfile}
         themeId={themeId}
         onThemeChange={onThemeChange}
         account={account}
@@ -560,7 +557,7 @@ function App() {
   const userId = auth.status === 'signedIn' ? (auth.user?.id ?? null) : null;
 
   return (
-    <PlayersApp
+    <ProfileApp
       key={userId ?? 'guest'}
       auth={auth}
       userId={userId}

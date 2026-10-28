@@ -36,12 +36,21 @@
     "backToFactions": "Factions"
   },
   "player": {
-    "switchProfile": "Changer de profil",
-    "newProfile": "Nouveau profil",
+    "editProfile": "Modifier mon personnage",
+    "setupTitle": "Créez votre personnage",
+    "setupHint": "Votre personnage gagne des niveaux avec vos factions.",
     "importProfile": "Importer un profil",
-    "deleteConfirm": "Supprimer le profil \"{{name}}\" définitivement ?",
-    "emptyMessage": "Créez votre premier profil",
-    "chooseMessage": "Choisissez votre personnage"
+    "importConfirm": "Le profil importé remplacera votre personnage actuel (factions, quêtes, progression et historique). Continuer ?",
+    "loading": "Récupération de votre personnage…",
+    "form": {
+      "name": "Nom",
+      "namePlaceholder": "Ex : Théo",
+      "emoji": "Emoji",
+      "color": "Couleur",
+      "preview": "Aperçu",
+      "create": "Commencer l'aventure",
+      "save": "Enregistrer"
+    }
   },
   "faction": {
     "newFaction": "Nouvelle faction",
@@ -142,13 +151,13 @@
     },
     "import": {
       "title": "Importer",
-      "profileHint": "Ajouté comme nouveau profil, sans toucher au profil actuel.",
-      "factionHint": "Ajoutée au profil actuel avec ses quêtes."
+      "profileHint": "Remplace votre personnage actuel.",
+      "factionHint": "Ajoutée à votre profil avec ses quêtes."
     }
   },
   "auth": {
     "subtitle": {
-      "signIn": "Connectez-vous pour retrouver vos profils",
+      "signIn": "Connectez-vous pour retrouver votre personnage",
       "signUp": "Créez votre compte",
       "reset": "Réinitialiser le mot de passe",
       "newPassword": "Choisissez un nouveau mot de passe"
@@ -168,7 +177,7 @@
     "toSignIn": "Déjà un compte ? Se connecter",
     "forgotPassword": "Mot de passe oublié ?",
     "continueAsGuest": "Continuer sans compte",
-    "guestHint": "Les profils restent uniquement sur cet appareil.",
+    "guestHint": "Votre personnage reste uniquement sur cet appareil.",
     "error": {
       "signIn": "Email ou mot de passe incorrect.",
       "network": "Impossible de joindre le serveur. Vérifiez votre connexion."
@@ -179,7 +188,7 @@
     },
     "account": {
       "signedInAs": "Connecté : {{email}}",
-      "guest": "Mode sans compte : profils sur cet appareil uniquement",
+      "guest": "Mode sans compte : données sur cet appareil uniquement",
       "signIn": "Se connecter",
       "signOut": "Se déconnecter",
       "signOutPending": "Certains changements ne sont pas encore synchronisés et seront perdus sur cet appareil. Se déconnecter quand même ?"
@@ -211,11 +220,11 @@
       },
       "data": {
         "title": "Données collectées",
-        "body": "Sans compte : tout reste dans votre navigateur, rien n'est envoyé à un serveur.\nAvec un compte : votre adresse email, l'identifiant de votre compte (et, si vous vous connectez avec Google, le nom et la photo fournis par Google) ainsi que le contenu de vos profils (noms, avatars, factions, quêtes, progression et historique). Les hébergeurs conservent aussi des journaux techniques (adresse IP, date de connexion) pour la sécurité du service."
+        "body": "Sans compte : tout reste dans votre navigateur, rien n'est envoyé à un serveur.\nAvec un compte : votre adresse email, l'identifiant de votre compte (et, si vous vous connectez avec Google, le nom et la photo fournis par Google) ainsi que le contenu de votre profil (nom, avatar, factions, quêtes, progression et historique). Les hébergeurs conservent aussi des journaux techniques (adresse IP, date de connexion) pour la sécurité du service."
       },
       "purposes": {
         "title": "Finalités et base légale",
-        "body": "Ces données servent uniquement à vous authentifier et à synchroniser vos profils entre vos appareils. Ce traitement est nécessaire au service que vous demandez en créant un compte (article 6.1.b du RGPD). Aucune publicité, aucune revente, aucune mesure d'audience."
+        "body": "Ces données servent uniquement à vous authentifier et à synchroniser votre profil entre vos appareils. Ce traitement est nécessaire au service que vous demandez en créant un compte (article 6.1.b du RGPD). Aucune publicité, aucune revente, aucune mesure d'audience."
       },
       "recipients": {
         "title": "Destinataires",
@@ -223,15 +232,15 @@
       },
       "retention": {
         "title": "Durée de conservation",
-        "body": "Vos données sont conservées tant que votre compte existe. Sur demande de suppression, le compte et ses profils sont effacés sous 30 jours. Les journaux techniques sont conservés pour une durée limitée par les hébergeurs."
+        "body": "Vos données sont conservées tant que votre compte existe. Sur demande de suppression, le compte et son profil sont effacés sous 30 jours. Les journaux techniques sont conservés pour une durée limitée par les hébergeurs."
       },
       "storage": {
         "title": "Cookies et stockage local",
-        "body": "Renown Tracker n'utilise ni cookie publicitaire ni traceur. Le stockage local de votre navigateur sert uniquement au fonctionnement de l'application (session de connexion, préférences de langue et de thème, copie locale de vos profils) et ne nécessite donc pas de consentement."
+        "body": "Renown Tracker n'utilise ni cookie publicitaire ni traceur. Le stockage local de votre navigateur sert uniquement au fonctionnement de l'application (session de connexion, préférences de langue et de thème, copie locale de votre profil) et ne nécessite donc pas de consentement."
       },
       "rights": {
         "title": "Vos droits",
-        "body": "Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données (l'export d'un profil en JSON permet déjà de les récupérer). Pour les exercer, écrivez à {{email}}. Vous pouvez aussi adresser une réclamation à la CNIL (cnil.fr)."
+        "body": "Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données (l'export du profil en JSON permet déjà de les récupérer). Pour les exercer, écrivez à {{email}}. Vous pouvez aussi adresser une réclamation à la CNIL (cnil.fr)."
       }
     }
   }

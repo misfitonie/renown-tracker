@@ -1,6 +1,6 @@
 import { Cloud, CloudOff, RefreshCw, AlertTriangle, LogIn, LogOut, HardDrive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { SyncStatus } from '../hooks/usePlayers';
+import { SyncStatus } from '../hooks/useProfile';
 
 export interface AccountInfo {
   email: string | null;   // null : mode sans compte
