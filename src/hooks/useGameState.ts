@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { GameState, Quest, Faction, FactionId } from '../types';
 import { getInitialGameState } from '../utils/initialData';
-import { shouldResetDailies, shouldResetWeeklies, shouldResetMonthlies, shouldResetYearlies, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
+import { applyPeriodicResets, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
@@ -14,90 +14,28 @@ export function useGameState(
   onFactionLevelUp?: (factionId: string) => void
 ) {
 
-  // Vérifier et reset les quêtes au chargement
+  // Vérifier et reset les quêtes au chargement, puis périodiquement
+  // (l'onglet peut rester ouvert après minuit / en changement de semaine)
+  const gameStateRef = useRef(gameState);
+  gameStateRef.current = gameState;
+
   useEffect(() => {
-    let needsUpdate = false;
-    let updatedState = { ...gameState };
+    const checkResets = () => {
+      if (!applyPeriodicResets(gameStateRef.current)) return;
+      setGameState(prev => applyPeriodicResets(prev) ?? prev);
+    };
 
-    // Reset dailies si nécessaire
-    if (shouldResetDailies(gameState.lastDailyReset)) {
-      updatedState = {
-        ...updatedState,
-        quests: updatedState.quests.map(quest => {
-          if (quest.type !== 'daily') return quest;
-          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
-          return {
-            ...quest,
-            completed: false,
-            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
-            streakCount: streakBroken ? 0 : quest.streakCount,
-          };
-        }),
-        lastDailyReset: new Date().toISOString(),
-      };
-      needsUpdate = true;
-    }
+    checkResets();
+    const interval = setInterval(checkResets, 60_000);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') checkResets();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
-    // Reset weeklies si nécessaire
-    if (shouldResetWeeklies(gameState.lastWeeklyReset)) {
-      updatedState = {
-        ...updatedState,
-        quests: updatedState.quests.map(quest => {
-          if (quest.type !== 'weekly') return quest;
-          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
-          return {
-            ...quest,
-            completed: false,
-            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
-            streakCount: streakBroken ? 0 : quest.streakCount,
-          };
-        }),
-        lastWeeklyReset: new Date().toISOString(),
-      };
-      needsUpdate = true;
-    }
-
-    // Reset monthlies si nécessaire
-    if (shouldResetMonthlies(gameState.lastMonthlyReset ?? new Date(0).toISOString())) {
-      updatedState = {
-        ...updatedState,
-        quests: updatedState.quests.map(quest => {
-          if (quest.type !== 'monthly') return quest;
-          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
-          return {
-            ...quest,
-            completed: false,
-            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
-            streakCount: streakBroken ? 0 : quest.streakCount,
-          };
-        }),
-        lastMonthlyReset: new Date().toISOString(),
-      };
-      needsUpdate = true;
-    }
-
-    // Reset yearlies si nécessaire
-    if (shouldResetYearlies(gameState.lastYearlyReset ?? new Date(0).toISOString())) {
-      updatedState = {
-        ...updatedState,
-        quests: updatedState.quests.map(quest => {
-          if (quest.type !== 'yearly') return quest;
-          const streakBroken = quest.followStreak && !isQuestCompleted(quest);
-          return {
-            ...quest,
-            completed: false,
-            current: quest.completionType === 'progress' ? (quest.startingValue ?? 0) : undefined,
-            streakCount: streakBroken ? 0 : quest.streakCount,
-          };
-        }),
-        lastYearlyReset: new Date().toISOString(),
-      };
-      needsUpdate = true;
-    }
-
-    if (needsUpdate) {
-      setGameState(updatedState);
-    }
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
 
   // Compléter une quête
