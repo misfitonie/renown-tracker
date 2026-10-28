@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Player } from '../types';
 import { PlayerFormModal, PlayerFormData } from './PlayerFormModal';
 import { IconImage } from './IconImage';
+import { useConfirm } from '../hooks/useConfirm';
 
 interface PlayerSelectScreenProps {
   players: Player[];
@@ -30,6 +31,7 @@ export function PlayerSelectScreen({
 }: PlayerSelectScreenProps) {
   const { t } = useTranslation();
   const [modal, setModal] = useState<ModalState | null>(null);
+  const { confirm, confirmDialog } = useConfirm();
 
   const handleSave = (data: PlayerFormData) => {
     if (modal?.mode === 'edit') {
@@ -40,8 +42,8 @@ export function PlayerSelectScreen({
     setModal(null);
   };
 
-  const handleDelete = (player: Player) => {
-    if (confirm(t('player.deleteConfirm', { name: player.name }))) {
+  const handleDelete = async (player: Player) => {
+    if (await confirm(t('player.deleteConfirm', { name: player.name }))) {
       onDelete(player.id);
     }
   };
@@ -144,6 +146,7 @@ export function PlayerSelectScreen({
           onClose={() => setModal(null)}
         />
       )}
+      {confirmDialog}
     </div>
   );
 }
