@@ -18,6 +18,7 @@ import { AccountBar, AccountInfo } from './components/AccountBar';
 import { useAuth, Auth } from './hooks/useAuth';
 import { clearAccountCache } from './hooks/usePlayers';
 import { ToastContainer } from './components/ToastContainer';
+import { AppFooter } from './components/AppFooter';
 import { Quest, Faction, FactionId, Player, GameState } from './types';
 import { isQuestCompleted } from './utils/gameLogic';
 import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -450,17 +451,7 @@ function GameApp({
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       {confirmDialog}
 
-      {/* Footer */}
-      <footer className="text-center py-4 mt-2">
-        <a
-          href="https://github.com/misfitonie"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-gray-700 hover:text-gray-500 transition-colors"
-        >
-          github.com/misfitonie
-        </a>
-      </footer>
+      <AppFooter className="py-4 mt-2" />
     </div>
   );
 }

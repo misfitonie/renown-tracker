@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Auth } from '../hooks/useAuth';
+import { AppFooter } from './AppFooter';
 
 type Mode = 'signIn' | 'signUp' | 'reset' | 'newPassword';
 
@@ -162,6 +163,8 @@ export function AuthScreen({ auth }: { auth: Auth }) {
           </div>
         )}
       </div>
+
+      <AppFooter className="relative z-10 mt-10" />
     </div>
   );
 }

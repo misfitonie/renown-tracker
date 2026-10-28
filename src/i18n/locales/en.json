@@ -191,5 +191,47 @@
       "offline": "Offline, will sync when back online",
       "error": "Sync error, retrying soon"
     }
+  },
+  "footer": {
+    "legal": "Legal notice & privacy",
+    "version": "v{{version}}"
+  },
+  "legal": {
+    "title": "Legal notice & privacy",
+    "updatedAt": "Last updated: {{date}}",
+    "sections": {
+      "publisher": {
+        "title": "Publisher",
+        "body": "Renown Tracker is a free, non-commercial personal project published by {{publisher}}.\nContact: {{email}}\nPublication director and data controller: {{publisher}}."
+      },
+      "hosting": {
+        "title": "Hosting",
+        "body": "Application: Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, United States (vercel.com).\nAccounts and synced data: Supabase Inc., 970 Toa Payoh North #07-04, Singapore 318992 (supabase.com). The database is located in the European Union (Ireland)."
+      },
+      "data": {
+        "title": "Data collected",
+        "body": "Without an account: everything stays in your browser, nothing is sent to a server.\nWith an account: your email address, your account ID (and, if you sign in with Google, the name and picture provided by Google) and the content of your profiles (names, avatars, factions, quests, progress and history). The hosting providers also keep technical logs (IP address, sign-in time) for security purposes."
+      },
+      "purposes": {
+        "title": "Purposes and legal basis",
+        "body": "This data is only used to authenticate you and sync your profiles across your devices. This processing is necessary for the service you request by creating an account (GDPR article 6.1.b). No advertising, no data selling, no analytics."
+      },
+      "recipients": {
+        "title": "Recipients",
+        "body": "Only the publisher and its technical processors can access it: Supabase (authentication and database), Vercel (hosting) and Google (only if you choose Google sign-in). As these companies may process data outside the European Union, transfers are covered by the European Commission's standard contractual clauses or the Data Privacy Framework."
+      },
+      "retention": {
+        "title": "Retention",
+        "body": "Your data is kept as long as your account exists. When you request deletion, the account and its profiles are erased within 30 days. Technical logs are kept for a limited time by the hosting providers."
+      },
+      "storage": {
+        "title": "Cookies and local storage",
+        "body": "Renown Tracker uses no advertising cookies or trackers. Your browser's local storage is only used to run the app (sign-in session, language and theme preferences, local copy of your profiles), so no consent is required."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "You have the right to access, rectify, erase, restrict, object to and port your data (exporting a profile as JSON already lets you retrieve it). To exercise these rights, write to {{email}}. You can also lodge a complaint with your data protection authority (in France, the CNIL: cnil.fr)."
+      }
+    }
   }
 }
