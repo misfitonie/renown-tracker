@@ -50,6 +50,11 @@
       "preview": "Aperçu",
       "create": "Commencer l'aventure",
       "save": "Enregistrer"
+    },
+    "setup": {
+      "next": "Suivant",
+      "startersTitle": "Factions de départ",
+      "startersHint": "Choisissez les domaines à faire progresser. Chaque faction arrive avec quelques quêtes, modifiables ensuite. Vous en trouverez d'autres sur la marketplace."
     }
   },
   "faction": {

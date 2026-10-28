@@ -50,6 +50,11 @@
       "preview": "Preview",
       "create": "Start the adventure",
       "save": "Save"
+    },
+    "setup": {
+      "next": "Next",
+      "startersTitle": "Starting factions",
+      "startersHint": "Pick the areas you want to level up. Each faction comes with a few quests you can edit. You'll find more on the marketplace."
     }
   },
   "faction": {

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { GameState, Quest, Faction, FactionId } from '../types';
-import { getInitialGameState } from '../utils/initialData';
+import { getInitialGameState, DEFAULT_STARTER_IDS } from '../utils/initialData';
 import { applyPeriodicResets, recordHistory, addXPToFaction, addPlayerXP, removeXPFromFaction, removePlayerXP, isQuestCompleted, getXPForNextLevel } from '../utils/gameLogic';
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
@@ -383,7 +383,7 @@ export function useGameState(
   // Reset des données du joueur actif
   const resetAllData = async () => {
     if (await confirmAction(i18n.t('app.confirm.reset'))) {
-      setGameState(getInitialGameState());
+      setGameState(getInitialGameState(DEFAULT_STARTER_IDS, i18n.language));
     }
   };
 

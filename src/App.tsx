@@ -567,6 +567,7 @@ function ProfileApp({
       <>
         <ProfileSetupScreen
           onCreate={createProfile}
+          userId={userId}
           onImport={() => pickJsonFile(importProfile)}
           account={account}
           loading={!loaded}
