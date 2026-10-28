@@ -2,8 +2,8 @@
 export const LEGAL_PATH = '/legal';
 
 export const LEGAL = {
-  publisher: '[Nom et prénom de l’éditeur]',
-  contactEmail: '[adresse email de contact]',
+  publisher: 'Théo Ferreira',
+  contactEmail: 'ferreiratheo.pro@gmail.com',
   updatedAt: '2026-10-28',
 };
 
