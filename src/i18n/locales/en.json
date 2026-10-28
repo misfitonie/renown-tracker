@@ -36,12 +36,21 @@
     "backToFactions": "Factions"
   },
   "player": {
-    "switchProfile": "Switch profile",
-    "newProfile": "New profile",
+    "editProfile": "Edit my character",
+    "setupTitle": "Create your character",
+    "setupHint": "Your character levels up along with your factions.",
     "importProfile": "Import a profile",
-    "deleteConfirm": "Delete profile \"{{name}}\" permanently?",
-    "emptyMessage": "Create your first profile",
-    "chooseMessage": "Choose your character"
+    "importConfirm": "The imported profile will replace your current character (factions, quests, progress and history). Continue?",
+    "loading": "Fetching your character…",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Theo",
+      "emoji": "Emoji",
+      "color": "Color",
+      "preview": "Preview",
+      "create": "Start the adventure",
+      "save": "Save"
+    }
   },
   "faction": {
     "newFaction": "New faction",
@@ -142,13 +151,13 @@
     },
     "import": {
       "title": "Import",
-      "profileHint": "Added as a new profile, the current one is left untouched.",
-      "factionHint": "Added to the current profile with its quests."
+      "profileHint": "Replaces your current character.",
+      "factionHint": "Added to your profile with its quests."
     }
   },
   "auth": {
     "subtitle": {
-      "signIn": "Sign in to get your profiles back",
+      "signIn": "Sign in to get your character back",
       "signUp": "Create your account",
       "reset": "Reset your password",
       "newPassword": "Choose a new password"
@@ -168,7 +177,7 @@
     "toSignIn": "Already have an account? Sign in",
     "forgotPassword": "Forgot your password?",
     "continueAsGuest": "Continue without an account",
-    "guestHint": "Profiles stay on this device only.",
+    "guestHint": "Your character stays on this device only.",
     "error": {
       "signIn": "Wrong email or password.",
       "network": "Can't reach the server. Check your connection."
@@ -179,7 +188,7 @@
     },
     "account": {
       "signedInAs": "Signed in: {{email}}",
-      "guest": "No account: profiles on this device only",
+      "guest": "No account: data on this device only",
       "signIn": "Sign in",
       "signOut": "Sign out",
       "signOutPending": "Some changes are not synced yet and will be lost on this device. Sign out anyway?"
@@ -211,11 +220,11 @@
       },
       "data": {
         "title": "Data collected",
-        "body": "Without an account: everything stays in your browser, nothing is sent to a server.\nWith an account: your email address, your account ID (and, if you sign in with Google, the name and picture provided by Google) and the content of your profiles (names, avatars, factions, quests, progress and history). The hosting providers also keep technical logs (IP address, sign-in time) for security purposes."
+        "body": "Without an account: everything stays in your browser, nothing is sent to a server.\nWith an account: your email address, your account ID (and, if you sign in with Google, the name and picture provided by Google) and the content of your profile (name, avatar, factions, quests, progress and history). The hosting providers also keep technical logs (IP address, sign-in time) for security purposes."
       },
       "purposes": {
         "title": "Purposes and legal basis",
-        "body": "This data is only used to authenticate you and sync your profiles across your devices. This processing is necessary for the service you request by creating an account (GDPR article 6.1.b). No advertising, no data selling, no analytics."
+        "body": "This data is only used to authenticate you and sync your profile across your devices. This processing is necessary for the service you request by creating an account (GDPR article 6.1.b). No advertising, no data selling, no analytics."
       },
       "recipients": {
         "title": "Recipients",
@@ -223,15 +232,15 @@
       },
       "retention": {
         "title": "Retention",
-        "body": "Your data is kept as long as your account exists. When you request deletion, the account and its profiles are erased within 30 days. Technical logs are kept for a limited time by the hosting providers."
+        "body": "Your data is kept as long as your account exists. When you request deletion, the account and its profile are erased within 30 days. Technical logs are kept for a limited time by the hosting providers."
       },
       "storage": {
         "title": "Cookies and local storage",
-        "body": "Renown Tracker uses no advertising cookies or trackers. Your browser's local storage is only used to run the app (sign-in session, language and theme preferences, local copy of your profiles), so no consent is required."
+        "body": "Renown Tracker uses no advertising cookies or trackers. Your browser's local storage is only used to run the app (sign-in session, language and theme preferences, local copy of your profile), so no consent is required."
       },
       "rights": {
         "title": "Your rights",
-        "body": "You have the right to access, rectify, erase, restrict, object to and port your data (exporting a profile as JSON already lets you retrieve it). To exercise these rights, write to {{email}}. You can also lodge a complaint with your data protection authority (in France, the CNIL: cnil.fr)."
+        "body": "You have the right to access, rectify, erase, restrict, object to and port your data (exporting your profile as JSON already lets you retrieve it). To exercise these rights, write to {{email}}. You can also lodge a complaint with your data protection authority (in France, the CNIL: cnil.fr)."
       }
     }
   }

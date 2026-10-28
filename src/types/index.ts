@@ -87,15 +87,16 @@ export interface Player {
   gameState: GameState;
 }
 
-// Store global (option A : une seule clé localStorage)
-export interface PlayersStore {
-  activePlayerId: string | null;
-  players: Player[];
-  // Compte connecté uniquement : profils modifiés / supprimés pas encore envoyés au serveur
-  pending?: PendingSync;
+// Store local : un seul profil (le personnage du compte, ou du mode sans compte)
+export interface ProfileStore {
+  player: Player | null;
+  // Compte connecté uniquement : profil modifié pas encore envoyé au serveur
+  dirty?: boolean;
 }
 
-export interface PendingSync {
-  dirty: string[];
-  deleted: string[];
+// Ancien format multi-profils (avant « 1 compte = 1 profil »), encore lu pour la migration
+export interface LegacyPlayersStore {
+  activePlayerId: string | null;
+  players: Player[];
+  pending?: { dirty: string[]; deleted: string[] };
 }

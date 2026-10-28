@@ -386,7 +386,7 @@ export function useGameState(
     }
   };
 
-  // Export du gameState actif (legacy, remplacé par exportPlayer dans usePlayers)
+  // Export du gameState actif (legacy, remplacé par exportProfile dans useProfile)
   const exportData = () => {
     const dataStr = JSON.stringify(gameState, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });

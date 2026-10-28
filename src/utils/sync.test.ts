@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { Player, PlayersStore } from '../types';
+import { Player, ProfileStore } from '../types';
 import { getInitialGameState } from './initialData';
-import { mergeRemotePlayers, acknowledgeSync, markDirty, markDeleted, RemotePlayerRow } from './sync';
+import { mergeRemoteProfile, acknowledgeSync, normalizeStore, pickProfile, RemotePlayerRow } from './sync';
 
-const player = (id: string, updatedAt: string, name = id): Player => ({
+const player = (id: string, updatedAt: string | undefined, name = id): Player => ({
   id,
   name,
   emoji: '🧙',
@@ -18,88 +18,86 @@ const row = (p: Player): RemotePlayerRow => ({ id: p.id, data: p, updated_at: p.
 const T1 = '2026-10-01T10:00:00.000Z';
 const T2 = '2026-10-02T10:00:00.000Z';
 
-describe('mergeRemotePlayers', () => {
+describe('mergeRemoteProfile', () => {
   it('prend la version du serveur pour un profil non modifié localement', () => {
-    const local: PlayersStore = { activePlayerId: 'a', players: [player('a', T1, 'ancien')] };
-    const merged = mergeRemotePlayers(local, [row(player('a', T2, 'nouveau'))]);
-    expect(merged.players[0].name).toBe('nouveau');
-    expect(merged.activePlayerId).toBe('a');
+    const local: ProfileStore = { player: player('a', T1, 'ancien') };
+    const { store } = mergeRemoteProfile(local, [row(player('a', T2, 'nouveau'))]);
+    expect(store.player?.name).toBe('nouveau');
+    expect(store.dirty).toBe(false);
   });
 
   it('garde la version locale modifiée si elle est plus récente', () => {
-    const local: PlayersStore = {
-      activePlayerId: 'a',
-      players: [player('a', T2, 'local')],
-      pending: { dirty: ['a'], deleted: [] },
-    };
-    const merged = mergeRemotePlayers(local, [row(player('a', T1, 'serveur'))]);
-    expect(merged.players[0].name).toBe('local');
-    expect(merged.pending?.dirty).toEqual(['a']);
+    const local: ProfileStore = { player: player('a', T2, 'local'), dirty: true };
+    const { store } = mergeRemoteProfile(local, [row(player('a', T1, 'serveur'))]);
+    expect(store.player?.name).toBe('local');
+    expect(store.dirty).toBe(true);
   });
 
   it('la version du serveur gagne si elle est plus récente que la modification locale', () => {
-    const local: PlayersStore = {
-      activePlayerId: 'a',
-      players: [player('a', T1, 'local')],
-      pending: { dirty: ['a'], deleted: [] },
-    };
-    const merged = mergeRemotePlayers(local, [row(player('a', T2, 'serveur'))]);
-    expect(merged.players[0].name).toBe('serveur');
-    expect(merged.pending?.dirty).toEqual([]);
+    const local: ProfileStore = { player: player('a', T1, 'local'), dirty: true };
+    const { store } = mergeRemoteProfile(local, [row(player('a', T2, 'serveur'))]);
+    expect(store.player?.name).toBe('serveur');
+    expect(store.dirty).toBe(false);
   });
 
-  it('ajoute les profils créés sur un autre appareil', () => {
-    const local: PlayersStore = { activePlayerId: 'a', players: [player('a', T1)] };
-    const merged = mergeRemotePlayers(local, [row(player('a', T1)), row(player('b', T1))]);
-    expect(merged.players.map(p => p.id)).toEqual(['a', 'b']);
+  it('récupère le profil du compte sur un nouvel appareil', () => {
+    const { store } = mergeRemoteProfile({ player: null }, [row(player('a', T1))]);
+    expect(store.player?.id).toBe('a');
   });
 
-  it('garde les profils locaux pas encore envoyés', () => {
-    const local: PlayersStore = {
-      activePlayerId: 'new',
-      players: [player('new', T1)],
-      pending: { dirty: ['new'], deleted: [] },
-    };
-    const merged = mergeRemotePlayers(local, []);
-    expect(merged.players.map(p => p.id)).toEqual(['new']);
-    expect(merged.activePlayerId).toBe('new');
+  it("envoie le profil local si le compte n'en a pas encore", () => {
+    const { store, discarded } = mergeRemoteProfile({ player: player('new', T1) }, []);
+    expect(store.player?.id).toBe('new');
+    expect(store.dirty).toBe(true);
+    expect(discarded).toBeNull();
   });
 
-  it('retire les profils supprimés sur un autre appareil', () => {
-    const local: PlayersStore = { activePlayerId: 'a', players: [player('a', T1), player('b', T1)] };
-    const merged = mergeRemotePlayers(local, [row(player('b', T1))]);
-    expect(merged.players.map(p => p.id)).toEqual(['b']);
-    expect(merged.activePlayerId).toBeNull();
+  it('garde le profil du compte face à un autre profil local, et met le local de côté', () => {
+    const guest = player('guest', T2, 'invité');
+    const { store, discarded } = mergeRemoteProfile({ player: guest, dirty: true }, [row(player('a', T1, 'compte'))]);
+    expect(store.player?.name).toBe('compte');
+    expect(store.dirty).toBe(false);
+    expect(discarded).toBe(guest);
   });
 
-  it("ne réintroduit pas un profil supprimé localement en attente d'envoi", () => {
-    const local: PlayersStore = { activePlayerId: null, players: [], pending: { dirty: [], deleted: ['a'] } };
-    const merged = mergeRemotePlayers(local, [row(player('a', T1))]);
-    expect(merged.players).toEqual([]);
-    expect(merged.pending?.deleted).toEqual(['a']);
+  it('prend la ligne la plus récente si le serveur en a encore plusieurs', () => {
+    const { store } = mergeRemoteProfile({ player: null }, [row(player('a', T1)), row(player('b', T2))]);
+    expect(store.player?.id).toBe('b');
   });
 });
 
 describe('acknowledgeSync', () => {
-  it("retire les profils envoyés, sauf ceux modifiés pendant l'envoi", () => {
-    const sentA = player('a', T1);
-    const sentB = player('b', T1);
-    const store: PlayersStore = {
-      activePlayerId: 'a',
-      players: [sentA, player('b', T2)],
-      pending: { dirty: ['a', 'b'], deleted: ['c'] },
-    };
-    const acked = acknowledgeSync(store, { players: [sentA, sentB], deleted: ['c'] });
-    expect(acked.pending).toEqual({ dirty: ['b'], deleted: [] });
+  it("n'est plus en attente après l'envoi, sauf si le profil a changé pendant l'envoi", () => {
+    const sent = player('a', T1);
+    expect(acknowledgeSync({ player: sent, dirty: true }, sent).dirty).toBe(false);
+    expect(acknowledgeSync({ player: player('a', T2), dirty: true }, sent).dirty).toBe(true);
   });
 });
 
-describe('markDirty / markDeleted', () => {
-  it('bascule un profil entre modifié et supprimé sans doublon', () => {
-    let pending = markDirty({ dirty: [], deleted: [] }, 'a');
-    pending = markDirty(pending, 'a');
-    expect(pending).toEqual({ dirty: ['a'], deleted: [] });
-    pending = markDeleted(pending, 'a');
-    expect(pending).toEqual({ dirty: [], deleted: ['a'] });
+describe('normalizeStore (ancien format multi-profils)', () => {
+  it('garde le profil modifié le plus récemment et met les autres de côté', () => {
+    const a = player('a', T1);
+    const b = player('b', T2);
+    const { store, discarded } = normalizeStore({
+      activePlayerId: 'a',
+      players: [a, b],
+      pending: { dirty: ['b'], deleted: [] },
+    });
+    expect(store).toEqual({ player: b, dirty: true });
+    expect(discarded).toEqual([a]);
+  });
+
+  it('sans date de modification, garde le profil actif', () => {
+    expect(pickProfile([player('a', undefined), player('b', undefined)], 'b')?.id).toBe('b');
+  });
+
+  it('lit le nouveau format tel quel', () => {
+    const store: ProfileStore = { player: player('a', T1), dirty: false };
+    expect(normalizeStore(store)).toEqual({ store, discarded: [] });
+  });
+
+  it('un store vide ne contient aucun profil', () => {
+    expect(normalizeStore({ activePlayerId: null, players: [] }).store.player).toBeNull();
+    expect(normalizeStore(null).store.player).toBeNull();
   });
 });

@@ -20,7 +20,7 @@ L'inspiration vient du système de renommées de World of Warcraft — progresse
 - **Lucide React** — icônes légères tree-shakeable
 - **dnd-kit** — drag & drop pour réordonner les factions
 - **i18next + react-i18next** — internationalisation FR/EN
-- **Supabase** (optionnel) — comptes Google / email et synchronisation des profils entre appareils
+- **Supabase** (optionnel) — comptes Google / email et synchronisation du profil entre appareils
 - **localStorage** — cache local, mode hors ligne et mode sans compte
 - **Vercel** — déploiement, avec une preview par PR
 - **Vitest + ESLint + GitHub Actions** — tests, lint et CI
@@ -61,8 +61,8 @@ src/
 │   ├── QuestCard.tsx          # Carte quête avec badge streak, lien hebdo
 │   ├── QuestFormModal.tsx     # CRUD quêtes (avec lien journalière → hebdo)
 │   ├── FactionFormModal.tsx   # CRUD factions
-│   ├── PlayerFormModal.tsx    # CRUD profils joueurs
-│   ├── PlayerSelectScreen.tsx # Écran de sélection de personnage
+│   ├── PlayerFormModal.tsx    # Formulaire du personnage (création / modification)
+│   ├── ProfileSetupScreen.tsx # Création du personnage au premier lancement
 │   ├── Header.tsx             # Card joueur : niveau, barre XP, gemmes
 │   ├── HistoryModal.tsx       # Historique des actions, groupé par jour
 │   ├── ImageUploadField.tsx   # Champ d'import d'image (avatar / icône faction)
@@ -74,7 +74,7 @@ src/
 ├── hooks/
 │   ├── useConfirm.tsx         # Modale de confirmation (remplace window.confirm)
 │   ├── useAuth.ts             # Session Supabase, mode sans compte
-│   ├── usePlayers.ts          # Store multi-joueurs (cache localStorage + synchro Supabase)
+│   ├── useProfile.ts          # Profil unique (cache localStorage + synchro Supabase)
 │   ├── useGameState.ts        # Logique de jeu (découplée du stockage)
 │   ├── useTheme.ts            # Thème clair / sombre (data-theme sur <html>)
 │   └── useToast.ts            # Système de notifications
@@ -100,36 +100,31 @@ src/
 
 ## Choix techniques
 
-### Séparation stockage / logique (`usePlayers` + `useGameState`)
+### Séparation stockage / logique (`useProfile` + `useGameState`)
 
-Le choix le plus structurant du projet. `usePlayers` est le seul responsable du stockage. `useGameState` reçoit un `gameState` et un `setGameState` en props — ce qui le rend indépendant du système multi-joueurs et facilite les tests.
+Le choix le plus structurant du projet. `useProfile` est le seul responsable du stockage. `useGameState` reçoit un `gameState` et un `setGameState` en props — ce qui le rend indépendant du stockage et de la synchro, et facilite les tests.
 
 ```typescript
-// usePlayers.ts
-const updateActiveGameState = useCallback(
+// useProfile.ts
+const updateGameState = useCallback(
   (updater: GameState | ((prev: GameState) => GameState)) => {
-    setStore(prev => {
-      const current = prev.players.find(p => p.id === prev.activePlayerId);
-      const newGameState =
-        typeof updater === 'function' ? updater(current.gameState) : updater;
-      return {
-        ...prev,
-        players: prev.players.map(p =>
-          p.id === prev.activePlayerId ? { ...p, gameState: newGameState } : p
-        ),
-      };
+    savePlayer(current => {
+      if (!current) return current;
+      const newGameState = typeof updater === 'function' ? updater(current.gameState) : updater;
+      return { ...current, gameState: newGameState };
     });
-  }, []
+  },
+  [savePlayer]
 );
 ```
 
-### Remount sur changement de joueur (`key` prop)
+### Remount quand le profil est remplacé (`key` prop)
 
 ```tsx
 <GameApp
-  key={activePlayer.id}  // force unmount/remount complet
-  player={activePlayer}
-  onUpdateGameState={updateActiveGameState}
+  key={player.id}  // force unmount/remount complet (ex. profil du compte récupéré)
+  player={player}
+  onUpdateGameState={updateGameState}
 />
 ```
 
@@ -200,23 +195,22 @@ Plutôt que d'instrumenter chaque branche de la logique de jeu, `recordHistory(p
 
 `fileToSquareDataUrl` recadre l'image au centre, la réduit à 128 px et l'encode en data URL WebP (~2-10 Ko). Elle est stockée dans `Player.avatar` / `Faction.image` : pas de backend nécessaire, et l'image suit l'export/import. L'emoji reste le fallback quand aucune image n'est définie.
 
-### Format de stockage : clé unique
+### Format de stockage : clé unique, un seul profil
 
-Une seule clé `renown-tracker` contient l'ensemble du store :
+Un compte (ou le mode sans compte) a **un seul profil** : le personnage du joueur. Les domaines de vie se
+séparent avec les factions. La clé `renown-tracker` contient :
 
 ```json
 {
-  "activePlayerId": "player-123",
-  "players": [
-    { "id": "player-123", "name": "Théo", "emoji": "🧙", "gameState": { "..." } }
-  ]
+  "player": { "id": "player-123", "name": "Théo", "emoji": "🧙", "gameState": { "..." } }
 }
 ```
 
-Lecture/écriture atomique, pas de désynchronisation possible.
-
 Connecté à un compte, le même format est gardé en cache sous `renown-tracker:account:<userId>`, avec en plus
-la liste des profils en attente d'envoi (`pending`). Voir [docs/supabase.md](docs/supabase.md).
+`dirty: true` tant que le profil n'est pas envoyé. Voir [docs/supabase.md](docs/supabase.md).
+
+L'ancien format multi-profils (`{ activePlayerId, players: [...] }`) est encore lu : le profil modifié le plus
+récemment est gardé, les autres sont copiés dans `renown-tracker-profiles-backup` (jamais effacé).
 
 ### Anneau de progression SVG
 
@@ -273,7 +267,7 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 
 - [x] CRUD factions et quêtes
 - [x] Système de streak
-- [x] Multi-joueurs
+- [x] Un profil par compte (le personnage du joueur)
 - [x] Animations level-up (faction card + barre XP)
 - [x] Thème clair / sombre
 - [x] Niveau global du joueur (découplé des factions)
@@ -284,13 +278,13 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Filtres et tri des quêtes, cartes repliables
 - [x] Quêtes mensuelles et annuelles
 - [x] Drag & drop des factions
-- [x] Export/import de profil et de faction (modale dédiée depuis les paramètres)
+- [x] Export/import du profil et de faction (modale dédiée depuis les paramètres)
 - [x] Reset des quêtes même si l'onglet reste ouvert
 - [x] Historique des actions
 - [x] Image importée pour l'avatar et les icônes de faction
 - [x] Outillage : config ESLint, tests unitaires de `gameLogic`, CI
 - [x] Modale de confirmation à la place de `confirm()`
-- [x] Comptes (Google / email) et synchronisation des profils entre appareils, hors ligne compris
+- [x] Comptes (Google / email) et synchronisation du profil entre appareils, hors ligne compris
 
 ---
 

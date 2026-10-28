@@ -10,10 +10,10 @@ interface HeaderProps {
   player: Player;
   playerXP: number;
   playerLevel: number;
-  onSwitchPlayer: () => void;
+  onEditPlayer: () => void;
 }
 
-export function Header({ currency, player, playerXP, playerLevel, onSwitchPlayer }: HeaderProps) {
+export function Header({ currency, player, playerXP, playerLevel, onEditPlayer }: HeaderProps) {
   const { t } = useTranslation();
   const xpToNext = getXPForNextLevel(playerLevel);
   const xpPercent = (playerXP / xpToNext) * 100;
@@ -60,14 +60,14 @@ export function Header({ currency, player, playerXP, playerLevel, onSwitchPlayer
     <header className="mb-6 md:mb-24">
       <div className="flex justify-center mb-4 md:mb-10">
         <button
-          onClick={onSwitchPlayer}
+          onClick={onEditPlayer}
           className="flex items-center gap-3 md:gap-6 px-4 md:px-8 py-3 md:py-5 rounded-2xl border transition-all hover:brightness-110 w-full md:w-auto"
           style={{
             backgroundColor: 'var(--theme-card-bg)',
             borderColor: `${player.color}55`,
             boxShadow: `0 0 24px ${player.color}18`,
           }}
-          title={t('player.switchProfile')}
+          title={t('player.editProfile')}
         >
           <IconImage image={player.avatar} emoji={player.emoji} className="text-4xl md:text-5xl leading-none flex-shrink-0" imageClassName="w-10 h-10 md:w-14 md:h-14" />
 
