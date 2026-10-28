@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, ChevronLeft, Check } from 'lucide-react';
+import { ChevronLeft, Check, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PlayerForm, PlayerFormData } from './PlayerFormModal';
 import { AccountBar, AccountInfo } from './AccountBar';
@@ -10,10 +10,10 @@ import { MarketplaceError, fetchMyPseudo, saveMyPseudo } from '../lib/marketplac
 
 interface ProfileSetupScreenProps {
   onCreate: (data: PlayerFormData, starterIds: string[], lang: string) => void;
-  onImport: () => void;
   account?: AccountInfo;
   userId?: string | null; // compte connecté : on choisit aussi son pseudo public
-  loading?: boolean; // compte connecté : personnage en cours de récupération
+  loading?: boolean; // compte connecté : on ne sait pas encore si le compte a un personnage
+  onRetry?: () => void; // compte connecté, serveur injoignable : nouvel essai
 }
 
 // Propose un pseudo à partir du nom du personnage (caractères autorisés seulement)
@@ -23,9 +23,10 @@ function suggestPseudo(name: string): string {
     .join('');
 }
 
-// Premier lancement (ou compte sans personnage) : création du personnage en deux étapes
+// Premier lancement (ou première connexion d'un compte sans personnage) : création du personnage en deux étapes.
+// C'est le seul endroit où un personnage est créé ; ensuite il se modifie depuis la carte joueur.
 // 1. nom, emoji, couleur  2. factions de départ (et pseudo public pour un compte)
-export function ProfileSetupScreen({ onCreate, onImport, account, userId = null, loading = false }: ProfileSetupScreenProps) {
+export function ProfileSetupScreen({ onCreate, account, userId = null, loading = false, onRetry }: ProfileSetupScreenProps) {
   const { t, i18n } = useTranslation();
   const [player, setPlayer] = useState<PlayerFormData | null>(null);
   const [step, setStep] = useState<1 | 2>(1);
@@ -105,23 +106,24 @@ export function ProfileSetupScreen({ onCreate, onImport, account, userId = null,
           </p>
         </div>
 
-        {!loading && step === 1 && (
-          <>
-            <div className="bg-bg-card border border-gray-700 rounded-xl p-6 shadow-2xl mb-6">
-              <p className="text-sm text-gray-500 mb-4">{t('player.setupHint')}</p>
-              <PlayerForm initialData={player ?? undefined} onSave={handlePlayer} submitLabel={t('player.setup.next')} />
-            </div>
+        {loading && onRetry && (
+          <div className="text-center">
+            <p className="text-sm text-gray-500 mb-4">{t('player.loadError')}</p>
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 bg-bg-card hover:bg-bg-card/80 text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors border border-gray-700 text-sm"
+            >
+              <RefreshCw size={14} />
+              {t('player.retry')}
+            </button>
+          </div>
+        )}
 
-            <div className="text-center">
-              <button
-                onClick={onImport}
-                className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors mx-auto"
-              >
-                <Upload size={14} />
-                {t('player.importProfile')}
-              </button>
-            </div>
-          </>
+        {!loading && step === 1 && (
+          <div className="bg-bg-card border border-gray-700 rounded-xl p-6 shadow-2xl">
+            <p className="text-sm text-gray-500 mb-4">{t('player.setupHint')}</p>
+            <PlayerForm initialData={player ?? undefined} onSave={handlePlayer} submitLabel={t('player.setup.next')} />
+          </div>
         )}
 
         {!loading && step === 2 && (

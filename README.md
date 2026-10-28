@@ -67,7 +67,7 @@ src/
 │   ├── HistoryModal.tsx       # Historique des actions, groupé par jour
 │   ├── ImageUploadField.tsx   # Champ d'import d'image (avatar / icône faction)
 │   ├── IconImage.tsx          # Affiche l'image importée, sinon l'emoji
-│   ├── TransferModal.tsx      # Modale Import / Export (profil ou faction)
+│   ├── TransferModal.tsx      # Modale Export (profil ou faction)
 │   ├── AuthScreen.tsx         # Connexion Google / email, inscription, mot de passe oublié
 │   ├── AccountBar.tsx         # Compte connecté + état de la synchro
 │   └── ToastContainer.tsx     # Notifications
@@ -278,7 +278,7 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 - [x] Filtres et tri des quêtes, cartes repliables
 - [x] Quêtes mensuelles et annuelles
 - [x] Drag & drop des factions
-- [x] Export/import du profil et de faction (modale dédiée depuis les paramètres)
+- [x] Export du profil et des factions, import de faction (depuis les paramètres)
 - [x] Reset des quêtes même si l'onglet reste ouvert
 - [x] Historique des actions
 - [x] Image importée pour l'avatar et les icônes de faction

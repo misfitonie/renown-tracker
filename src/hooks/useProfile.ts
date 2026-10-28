@@ -118,16 +118,16 @@ export function useProfile(userId: string | null = null) {
   // --- Synchronisation avec le compte ---
 
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(userId ? 'syncing' : 'local');
-  // Première synchro terminée (réussie ou non) : sans ça, un nouvel appareil afficherait
-  // la création de personnage avant d'avoir récupéré celui du compte
-  const [loaded, setLoaded] = useState(!userId);
+  // Le serveur a répondu au moins une fois : on sait si le compte a déjà un personnage.
+  // Tant que ce n'est pas le cas (chargement, hors ligne, erreur), on ne propose pas d'en créer un.
+  const [remoteChecked, setRemoteChecked] = useState(!userId);
   const syncingRef = useRef(false);
   const resyncRef = useRef(false);
 
   const sync = useCallback(async () => {
     if (!userId || !supabase) return;
     if (syncingRef.current) { resyncRef.current = true; return; }
-    if (!navigator.onLine) { setSyncStatus('offline'); setLoaded(true); return; }
+    if (!navigator.onLine) { setSyncStatus('offline'); return; }
 
     syncingRef.current = true;
     setSyncStatus('syncing');
@@ -137,6 +137,7 @@ export function useProfile(userId: string | null = null) {
         .from(PLAYERS_TABLE)
         .select('id, data, updated_at');
       if (error) throw error;
+      setRemoteChecked(true);
       const rows = (data ?? []) as RemotePlayerRow[];
       const { store: merged, discarded } = mergeRemoteProfile(storeRef.current, rows);
       if (discarded) backupProfiles([discarded]);
@@ -158,7 +159,6 @@ export function useProfile(userId: string | null = null) {
       setSyncStatus(navigator.onLine ? 'error' : 'offline');
     } finally {
       syncingRef.current = false;
-      setLoaded(true);
       if (resyncRef.current) {
         resyncRef.current = false;
         void sync();
@@ -209,9 +209,10 @@ export function useProfile(userId: string | null = null) {
     [savePlayer]
   );
 
+  // Création du personnage, une seule fois (premier lancement ou première connexion du compte).
   // starterIds : factions de départ choisies à la création
   const createProfile = (data: ProfileFormData, starterIds?: string[], lang?: string) => {
-    savePlayer(() => ({
+    savePlayer(current => current ?? ({
       id: `player-${Date.now()}`,
       ...data,
       createdAt: new Date().toISOString(),
@@ -229,26 +230,9 @@ export function useProfile(userId: string | null = null) {
     downloadJson(player, `renown-${player.name}-${new Date().toISOString().slice(0, 10)}.json`);
   };
 
-  // Remplace le profil par celui du fichier. L'id du profil actuel est gardé :
-  // sur un compte, c'est la même ligne qui est mise à jour sur le serveur.
-  const importProfile = (jsonString: string): boolean => {
-    try {
-      const imported = JSON.parse(jsonString) as Player;
-      if (!imported.id || !imported.name || !imported.gameState) return false;
-      savePlayer(current => ({
-        ...imported,
-        id: current?.id ?? `player-${Date.now()}`,
-        createdAt: current?.createdAt ?? imported.createdAt ?? new Date().toISOString(),
-      }));
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   return {
     player: store.player,
-    loaded,
+    remoteChecked,
     syncStatus,
     hasPendingChanges: hasPending,
     syncNow: sync,
@@ -256,6 +240,5 @@ export function useProfile(userId: string | null = null) {
     createProfile,
     editProfile,
     exportProfile,
-    importProfile,
   };
 }

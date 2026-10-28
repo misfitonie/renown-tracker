@@ -21,6 +21,7 @@
     "settings": {
       "export": "Export",
       "import": "Import",
+      "importFaction": "Import a faction",
       "theme": "Theme",
       "language": "Language",
       "reset": "Reset",
@@ -39,9 +40,9 @@
     "editProfile": "Edit my character",
     "setupTitle": "Create your character",
     "setupHint": "Your character levels up along with your factions.",
-    "importProfile": "Import a profile",
-    "importConfirm": "The imported profile will replace your current character (factions, quests, progress and history). Continue?",
     "loading": "Fetching your character…",
+    "loadError": "Can't reach the server to fetch your character. Check your connection.",
+    "retry": "Try again",
     "form": {
       "name": "Name",
       "namePlaceholder": "e.g. Theo",
@@ -129,7 +130,6 @@
     "weeklyCompleted": "✅ Weekly quest \"{{title}}\" completed!",
     "factionImportSuccess": "Faction imported successfully!",
     "factionImportError": "Error importing faction",
-    "profileImportError": "This file is not a valid profile",
     "factionInstalled": "{{name}} joined your factions!"
   },
   "history": {
@@ -154,11 +154,6 @@
       "title": "Export",
       "profileHint": "The whole profile: factions, quests, progress and history.",
       "factionHint": "One faction and its quests, to share or reuse."
-    },
-    "import": {
-      "title": "Import",
-      "profileHint": "Replaces your current character.",
-      "factionHint": "Added to your profile with its quests."
     }
   },
   "marketplace": {
