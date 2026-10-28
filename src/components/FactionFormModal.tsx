@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Faction } from '../types';
 import { ImageUploadField } from './ImageUploadField';
 import { IconImage } from './IconImage';
+import { MARKETPLACE_LIMITS } from '../utils/marketplace';
 
 export interface FactionFormData {
   name: string;
@@ -58,6 +59,7 @@ export function FactionFormModal({ initialData, onSave, onClose }: FactionFormMo
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               className={inputClass}
               placeholder={t('faction.modal.namePlaceholder')}
+              maxLength={MARKETPLACE_LIMITS.factionName}
               required
             />
           </div>
@@ -71,6 +73,7 @@ export function FactionFormModal({ initialData, onSave, onClose }: FactionFormMo
                 onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
                 className={inputClass}
                 placeholder="🎨"
+                maxLength={MARKETPLACE_LIMITS.icon}
               />
             </div>
             <div>

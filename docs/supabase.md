@@ -11,7 +11,8 @@ la sécurité repose sur les règles RLS de la table `players`.
 1. Sur <https://supabase.com/dashboard>, **New project** (offre gratuite). Région conseillée : `West EU (Paris)`.
    Garde le mot de passe de la base dans ton gestionnaire de mots de passe (l'app n'en a pas besoin).
 2. **SQL Editor** → **New query** → colle le contenu de [`supabase/migrations/0001_players.sql`](../supabase/migrations/0001_players.sql) → **Run**,
-   puis de même avec [`0002_one_profile_per_account.sql`](../supabase/migrations/0002_one_profile_per_account.sql).
+   puis de même avec [`0002_one_profile_per_account.sql`](../supabase/migrations/0002_one_profile_per_account.sql)
+   et [`0003_marketplace.sql`](../supabase/migrations/0003_marketplace.sql).
 3. **Table Editor** : vérifie que la table `players` existe avec le badge **RLS enabled**.
 
 ## 2. Email + mot de passe
@@ -79,3 +80,29 @@ En local : `cp .env.example .env.local` et remplis les deux valeurs (`.env.local
   Un profil local écarté à la synchro est aussi copié dans `renown-tracker-profiles-backup`.
 - **Mode sans compte** : toujours disponible depuis l'écran de connexion, données uniquement sur l'appareil.
 - **Déconnexion** : supprime le cache du compte sur l'appareil (avec confirmation s'il reste des changements non envoyés).
+
+## Marketplace de factions
+
+Migration [`0003_marketplace.sql`](../supabase/migrations/0003_marketplace.sql).
+
+- **`public_profiles`** : un pseudo public par compte (3 à 20 caractères, unique sans tenir compte de la casse),
+  affiché à la place de l'email. Obligatoire pour publier (clé étrangère depuis `shared_factions`).
+- **`shared_factions`** : le modèle publié (nom, icône/image, couleur, description, 1 à 3 thèmes, quêtes en JSON).
+  Aucune progression : pas de niveau, d'XP, de gemmes, de quête validée ni de streak (la base refuse les quêtes
+  qui contiennent `completed`, `current` ou `streakCount`). Lecture publique (même sans compte), publication et
+  suppression (dépublier) par l'auteur uniquement, 20 publications maximum par compte.
+  Les compteurs (`likes_count`, `reports_count`) et `hidden` ne sont modifiables que par les triggers.
+- **`faction_likes`** : un « j'aime » par compte et par faction, `likes_count` tenu à jour par trigger (tri « les plus aimées »).
+- **`faction_reports`** : un signalement par compte et par faction, avec un motif optionnel.
+  À 3 signalements, la faction passe en `hidden` : elle disparaît pour tout le monde sauf son auteur.
+- **Limites de longueur** : nom 40, description 280, titre de quête 80, description de quête 300, 50 quêtes,
+  image 100 Ko. Elles sont vérifiées par la base et reprises dans `MARKETPLACE_LIMITS` (`src/utils/marketplace.ts`).
+
+### Modération
+
+Dans **Table Editor** :
+
+- `faction_reports` liste les signalements et leur motif.
+- Pour masquer une faction : `shared_factions` → `hidden = true`. Pour la rétablir après examen : `hidden = false`
+  (et éventuellement supprimer ses lignes de `faction_reports`).
+- Pour la supprimer définitivement : supprimer la ligne de `shared_factions` (likes et signalements suivent).

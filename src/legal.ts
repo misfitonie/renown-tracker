@@ -12,6 +12,7 @@ export const LEGAL_SECTIONS = [
   'hosting',
   'data',
   'purposes',
+  'marketplace',
   'recipients',
   'retention',
   'storage',

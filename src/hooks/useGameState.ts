@@ -5,6 +5,7 @@ import { applyPeriodicResets, recordHistory, addXPToFaction, addPlayerXP, remove
 import { QuestFormData } from '../components/QuestFormModal';
 import { FactionFormData } from '../components/FactionFormModal';
 import { ToastType } from './useToast';
+import { FactionTemplate, instantiateTemplate } from '../utils/marketplace';
 import i18n from '../i18n';
 
 export function useGameState(
@@ -422,6 +423,18 @@ export function useGameState(
     }
   };
 
+  // Installation d'une faction de la marketplace : copie au niveau 0, quêtes à zéro
+  const installFaction = (template: Pick<FactionTemplate, 'name' | 'icon' | 'image' | 'color' | 'quests'>) => {
+    const { faction, quests } = instantiateTemplate(template);
+    setGameState(prev => ({
+      ...prev,
+      factions: [...prev.factions, faction],
+      quests: [...prev.quests, ...quests],
+    }));
+    showToast(i18n.t('toast.factionInstalled', { name: faction.name }), 'success');
+    return faction.id;
+  };
+
   const reorderFactions = (newFactions: Faction[]) => {
     setGameState(prev => ({ ...prev, factions: newFactions }));
   };
@@ -441,5 +454,6 @@ export function useGameState(
     resetAllData,
     exportData,
     importFaction,
+    installFaction,
   };
 }

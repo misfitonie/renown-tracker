@@ -124,7 +124,8 @@
     "weeklyCompleted": "✅ Quête hebdo \"{{title}}\" complétée !",
     "factionImportSuccess": "Faction importée avec succès !",
     "factionImportError": "Erreur lors de l'import de la faction",
-    "profileImportError": "Ce fichier n'est pas un profil valide"
+    "profileImportError": "Ce fichier n'est pas un profil valide",
+    "factionInstalled": "{{name}} a rejoint vos factions !"
   },
   "history": {
     "title": "Historique",
@@ -153,6 +154,95 @@
       "title": "Importer",
       "profileHint": "Remplace votre personnage actuel.",
       "factionHint": "Ajoutée à votre profil avec ses quêtes."
+    }
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "explore": "Explorer la marketplace",
+    "tabs": {
+      "explore": "Explorer",
+      "mine": "Mes publications"
+    },
+    "searchPlaceholder": "Rechercher une faction…",
+    "sort": {
+      "popular": "Les plus aimées",
+      "recent": "Les plus récentes"
+    },
+    "tags": {
+      "health": "Santé",
+      "sport": "Sport",
+      "mind": "Bien-être",
+      "learning": "Apprentissage",
+      "work": "Travail",
+      "creativity": "Créativité",
+      "finance": "Finances",
+      "social": "Relations",
+      "home": "Maison",
+      "leisure": "Loisirs"
+    },
+    "cardMeta_one": "par {{pseudo}} · {{count}} quête",
+    "cardMeta_other": "par {{pseudo}} · {{count}} quêtes",
+    "byAuthor": "par {{pseudo}} · {{date}}",
+    "empty": "Aucune faction ne correspond à cette recherche.",
+    "emptyMine": "Vous n'avez encore publié aucune faction.",
+    "loading": "Chargement…",
+    "loadMore": "Voir plus",
+    "retry": "Réessayer",
+    "install": "Installer",
+    "installHint": "L'installation ajoute une copie à vos factions, au niveau 0 et avec des quêtes à faire.",
+    "signInToLike": "Connectez-vous pour aimer cette faction",
+    "signInToPublish": "Se connecter pour publier",
+    "unpublish": "Dépublier",
+    "unpublishConfirm": "Retirer cette faction de la marketplace ? Les copies déjà installées par d'autres joueurs restent chez eux.",
+    "unpublished": "Faction retirée de la marketplace",
+    "published": "Faction publiée !",
+    "hiddenBadge": "Masquée",
+    "hiddenNotice": "Cette faction a été masquée après plusieurs signalements : elle n'est plus visible des autres joueurs.",
+    "publish": {
+      "button": "Publier",
+      "title": "Publier une faction",
+      "factionLabel": "Faction",
+      "questCount_one": "{{count}} quête sera partagée",
+      "questCount_other": "{{count}} quêtes seront partagées",
+      "descriptionLabel": "Description (optionnelle)",
+      "descriptionPlaceholder": "À qui s'adresse cette faction, comment l'utiliser…",
+      "tagsLabel": "Thèmes (1 à {{max}})",
+      "privacy": "Seules la structure de la faction (nom, icône, couleur) et la définition des quêtes sont publiées. Votre niveau, votre XP, vos gemmes, vos quêtes validées et votre historique restent privés.",
+      "asPseudo": "Publié sous le pseudo « {{pseudo}} ».",
+      "submit": "Publier sur la marketplace",
+      "errors": {
+        "name": "Le nom de la faction est vide ou trop long.",
+        "description": "La description est trop longue.",
+        "tags": "Choisissez au moins un thème.",
+        "noQuests": "Ajoutez au moins une quête à cette faction avant de la publier.",
+        "tooManyQuests": "Une faction publiée peut contenir au plus {{max}} quêtes.",
+        "questTitle": "Le titre d'une quête est vide ou trop long.",
+        "image": "L'image de la faction est trop lourde."
+      }
+    },
+    "pseudo": {
+      "title": "Votre pseudo public",
+      "hint": "Il s'affiche sur les factions que vous publiez, à la place de votre email.",
+      "placeholder": "Ex : Theo_42",
+      "save": "Enregistrer",
+      "change": "Changer",
+      "invalid": "De {{min}} à {{max}} caractères : lettres, chiffres, « _ », « - » ou « . ».",
+      "taken": "Ce pseudo est déjà pris."
+    },
+    "report": {
+      "button": "Signaler",
+      "reasonLabel": "Pourquoi signalez-vous cette faction ? (optionnel)",
+      "submit": "Envoyer le signalement",
+      "thanks": "Merci, le signalement a été envoyé.",
+      "done": "Vous avez signalé cette faction."
+    },
+    "error": {
+      "load": "Impossible de charger la marketplace.",
+      "offline": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+      "pseudoTaken": "Ce pseudo est déjà pris.",
+      "quota": "Vous avez atteint la limite de 20 factions publiées.",
+      "invalid": "Cette faction ne respecte pas les limites de la marketplace.",
+      "unknown": "Une erreur est survenue, réessayez."
     }
   },
   "auth": {
@@ -220,15 +310,19 @@
       },
       "data": {
         "title": "Données collectées",
-        "body": "Sans compte : tout reste dans votre navigateur, rien n'est envoyé à un serveur.\nAvec un compte : votre adresse email, l'identifiant de votre compte (et, si vous vous connectez avec Google, le nom et la photo fournis par Google) ainsi que le contenu de votre profil (nom, avatar, factions, quêtes, progression et historique). Les hébergeurs conservent aussi des journaux techniques (adresse IP, date de connexion) pour la sécurité du service."
+        "body": "Sans compte : tout reste dans votre navigateur, rien n'est envoyé à un serveur.\nAvec un compte : votre adresse email, l'identifiant de votre compte (et, si vous vous connectez avec Google, le nom et la photo fournis par Google) ainsi que le contenu de votre profil (nom, avatar, factions, quêtes, progression et historique). Les hébergeurs conservent aussi des journaux techniques (adresse IP, date de connexion) pour la sécurité du service.\nSi vous utilisez la marketplace : votre pseudo public, les factions que vous publiez, vos « j'aime » et vos signalements."
       },
       "purposes": {
         "title": "Finalités et base légale",
-        "body": "Ces données servent uniquement à vous authentifier et à synchroniser votre profil entre vos appareils. Ce traitement est nécessaire au service que vous demandez en créant un compte (article 6.1.b du RGPD). Aucune publicité, aucune revente, aucune mesure d'audience."
+        "body": "Ces données servent uniquement à vous authentifier, à synchroniser votre profil entre vos appareils et, si vous l'utilisez, à faire fonctionner la marketplace. Ce traitement est nécessaire au service que vous demandez en créant un compte (article 6.1.b du RGPD). Aucune publicité, aucune revente, aucune mesure d'audience."
+      },
+      "marketplace": {
+        "title": "Marketplace (contenu public)",
+        "body": "Si vous publiez une faction sur la marketplace, sont rendus publics : son nom, son icône ou image, sa couleur, sa description, ses thèmes, la définition de ses quêtes (titres, descriptions, fréquences, récompenses) et votre pseudo public. Votre email, votre niveau, votre XP, vos gemmes, vos quêtes validées et votre historique ne sont jamais publiés. Vos « j'aime » et signalements ne sont pas visibles des autres joueurs ; les signalements (avec leur motif) sont lus par l'éditeur pour la modération, et une faction signalée plusieurs fois est masquée. Vous pouvez dépublier une faction à tout moment ; les copies déjà installées par d'autres joueurs restent chez eux. Ce partage repose sur votre action volontaire de publication (article 6.1.b du RGPD)."
       },
       "recipients": {
         "title": "Destinataires",
-        "body": "Seul l'éditeur et ses sous-traitants techniques y ont accès : Supabase (authentification et base de données), Vercel (hébergement) et Google (uniquement si vous choisissez la connexion Google). Ces sociétés pouvant traiter des données hors de l'Union européenne, les transferts sont encadrés par les clauses contractuelles types de la Commission européenne ou le Data Privacy Framework."
+        "body": "Hors contenu publié sur la marketplace, seul l'éditeur et ses sous-traitants techniques y ont accès : Supabase (authentification et base de données), Vercel (hébergement) et Google (uniquement si vous choisissez la connexion Google). Ces sociétés pouvant traiter des données hors de l'Union européenne, les transferts sont encadrés par les clauses contractuelles types de la Commission européenne ou le Data Privacy Framework."
       },
       "retention": {
         "title": "Durée de conservation",
