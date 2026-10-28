@@ -198,6 +198,7 @@
   },
   "legal": {
     "title": "Legal notice & privacy",
+    "back": "Back to the app",
     "updatedAt": "Last updated: {{date}}",
     "sections": {
       "publisher": {

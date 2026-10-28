@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LegalModal } from './LegalModal';
+import { LEGAL_PATH } from '../legal';
 
 export function AppFooter({ className = '' }: { className?: string }) {
   const { t } = useTranslation();
-  const [showLegal, setShowLegal] = useState(false);
   const linkClass = 'hover:text-gray-500 transition-colors';
 
   return (
@@ -13,12 +11,11 @@ export function AppFooter({ className = '' }: { className?: string }) {
         github.com/misfitonie
       </a>
       <span aria-hidden>·</span>
-      <button onClick={() => setShowLegal(true)} className={linkClass}>
+      <a href={LEGAL_PATH} className={linkClass}>
         {t('footer.legal')}
-      </button>
+      </a>
       <span aria-hidden>·</span>
       <span title={__APP_COMMIT__ || undefined}>{t('footer.version', { version: __APP_VERSION__ })}</span>
-      {showLegal && <LegalModal onClose={() => setShowLegal(false)} />}
     </footer>
   );
 }

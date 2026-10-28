@@ -198,6 +198,7 @@
   },
   "legal": {
     "title": "Mentions légales & confidentialité",
+    "back": "Retour à l'application",
     "updatedAt": "Dernière mise à jour : {{date}}",
     "sections": {
       "publisher": {
