@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useGameState } from './hooks/useGameState';
 import { usePlayers } from './hooks/usePlayers';
 import { useToast } from './hooks/useToast';
+import { useConfirm } from './hooks/useConfirm';
 import { Header } from './components/Header';
 import { FactionCard } from './components/FactionCard';
 import { QuestCard } from './components/QuestCard';
@@ -41,6 +42,7 @@ function GameApp({
   onExportPlayer: () => void;
 }) {
   const { toasts, showToast, removeToast } = useToast();
+  const { confirm, confirmDialog } = useConfirm();
 
   const [levelUpTriggers, setLevelUpTriggers] = useState<Record<string, number>>({});
   const handleFactionLevelUp = (factionId: string) => {
@@ -62,7 +64,7 @@ function GameApp({
     resetAllData,
     importData,
     importFaction,
-  } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp);
+  } = useGameState(player.gameState, onUpdateGameState, showToast, handleFactionLevelUp, confirm);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -440,6 +442,7 @@ function GameApp({
       )}
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+      {confirmDialog}
 
       {/* Footer */}
       <footer className="text-center py-4 mt-2">

@@ -9,7 +9,7 @@ function getInitialStore(): PlayersStore {
   // Format actuel
   const saved = localStorage.getItem(PLAYERS_KEY);
   if (saved) {
-    try { return JSON.parse(saved); } catch {}
+    try { return JSON.parse(saved); } catch { /* sauvegarde illisible : on tente l'ancien format */ }
   }
 
   // Migration depuis l'ancien format
@@ -26,7 +26,7 @@ function getInitialStore(): PlayersStore {
         gameState: legacyState,
       };
       return { activePlayerId: player.id, players: [player] };
-    } catch {}
+    } catch { /* ancien format illisible : on repart de zéro */ }
   }
 
   return { activePlayerId: null, players: [] };

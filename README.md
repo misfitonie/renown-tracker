@@ -6,7 +6,7 @@
 
 ## Concept
 
-L'idée est simple : transformer des habitudes du quotidien en système de quêtes RPG. Chaque domaine de vie devient une **faction** (travail, sport, culture, etc.), chaque habitude devient une **quête** avec une récompense en XP et en gemmes. Compléter ses quêtes fait monter le niveau de renommée de chaque faction, ce qui contribue à la progression globale du joueur.
+L'idée est simple : transformer des habitudes du quotidien en système de quêtes RPG. Chaque domaine de vie devient une **faction** (travail, sport, culture, etc.), chaque habitude devient une **quête** (journalière, hebdomadaire, mensuelle ou annuelle) avec une récompense en XP et en gemmes. Compléter ses quêtes fait monter le niveau de renommée de chaque faction, ce qui contribue à la progression globale du joueur.
 
 L'inspiration vient du système de renommées de World of Warcraft — progresser dans plusieurs factions en parallèle, chacune avec sa propre courbe de progression.
 
@@ -18,8 +18,11 @@ L'inspiration vient du système de renommées de World of Warcraft — progresse
 - **Vite** — build tool rapide, HMR natif
 - **Tailwind CSS** — utility-first, pas de composants UI tiers
 - **Lucide React** — icônes légères tree-shakeable
+- **dnd-kit** — drag & drop pour réordonner les factions
 - **i18next + react-i18next** — internationalisation FR/EN
 - **localStorage** — persistance locale, pas de backend
+- **Vercel** — déploiement, avec une preview par PR
+- **Vitest + ESLint + GitHub Actions** — tests, lint et CI
 
 ---
 
@@ -36,6 +39,13 @@ Build de production :
 npm run build
 ```
 
+Vérifications (lancées aussi par la CI GitHub Actions sur chaque PR) :
+
+```bash
+npm run lint
+npm test        # tests unitaires Vitest de gameLogic
+```
+
 ---
 
 ## Architecture
@@ -50,8 +60,12 @@ src/
 │   ├── PlayerFormModal.tsx    # CRUD profils joueurs
 │   ├── PlayerSelectScreen.tsx # Écran de sélection de personnage
 │   ├── Header.tsx             # Card joueur : niveau, barre XP, gemmes
+│   ├── HistoryModal.tsx       # Historique des actions, groupé par jour
+│   ├── ImageUploadField.tsx   # Champ d'import d'image (avatar / icône faction)
+│   ├── IconImage.tsx          # Affiche l'image importée, sinon l'emoji
 │   └── ToastContainer.tsx     # Notifications
 ├── hooks/
+│   ├── useConfirm.tsx         # Modale de confirmation (remplace window.confirm)
 │   ├── usePlayers.ts          # Store multi-joueurs (localStorage)
 │   ├── useGameState.ts        # Logique de jeu (découplée du stockage)
 │   ├── useTheme.ts            # Gestion des thèmes visuels
@@ -64,7 +78,8 @@ src/
 ├── types/
 │   └── index.ts               # Tous les types TypeScript
 ├── utils/
-│   ├── gameLogic.ts           # XP, level up/down, reset logic
+│   ├── gameLogic.ts           # XP, level up/down, resets, historique
+│   ├── image.ts               # Recadrage/réduction des images importées
 │   ├── initialData.ts         # Données de départ
 │   └── themes.ts              # Définitions des 5 thèmes visuels
 └── App.tsx                    # Orchestration + routing joueur
@@ -167,7 +182,15 @@ Un `animatingRef` bloque les mises à jour React entrantes pendant l'animation.
 
 ### Internationalisation (i18next)
 
-Deux langues (FR/EN) via `react-i18next`. La langue est persistée dans `renown-tracker-lang`. Pour les contextes non-React (toasts, `confirm()` dans `useGameState`), `i18n.t()` est importé directement depuis le module i18n.
+Deux langues (FR/EN) via `react-i18next`. La langue est persistée dans `renown-tracker-lang`. Pour les contextes non-React (toasts, messages de confirmation dans `useGameState`), `i18n.t()` est importé directement depuis le module i18n.
+
+### Historique des actions (`recordHistory`)
+
+Plutôt que d'instrumenter chaque branche de la logique de jeu, `recordHistory(prev, next)` compare l'état avant et après une action de quête et en déduit les entrées : quêtes validées/dévalidées, changements de niveau des factions et du joueur. Le nom et l'icône de la faction sont copiés dans l'entrée pour rester lisibles si la faction est supprimée. L'historique est stocké dans `gameState.history`, du plus récent au plus ancien, limité à 500 entrées.
+
+### Images importées (avatar et icône de faction)
+
+`fileToSquareDataUrl` recadre l'image au centre, la réduit à 128 px et l'encode en data URL WebP (~2-10 Ko). Elle est stockée dans `Player.avatar` / `Faction.image` : pas de backend nécessaire, et l'image suit l'export/import. L'emoji reste le fallback quand aucune image n'est définie.
 
 ### Format de stockage : clé unique
 
@@ -221,7 +244,7 @@ La barre joueur suit la même formule `100 × (playerLevel + 1)`.
 ### Système de streak
 
 - À la complétion : `streakCount++`
-- Au reset daily/weekly : si la quête n'était **pas** complétée → `streakCount = 0`
+- Au reset (daily/weekly/monthly/yearly) : si la quête n'était **pas** complétée → `streakCount = 0`
 
 Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à détecter les jours/semaines manqués.
 
@@ -229,8 +252,9 @@ Pas de champ `lastCompletedAt` — le mécanisme de reset existant suffit à dé
 
 - **Daily** : reset si `lastDailyReset` est un jour différent d'aujourd'hui
 - **Weekly** : reset si le dernier lundi avant `lastWeeklyReset` ≠ le dernier lundi avant maintenant
+- **Monthly / Yearly** : reset si le mois / l'année de `lastMonthlyReset` / `lastYearlyReset` a changé
 
-Le reset se déclenche au montage de `useGameState`, dans un `useEffect([], [])`.
+`applyPeriodicResets` est vérifié au montage de `useGameState`, puis toutes les minutes et au retour sur l'onglet (`visibilitychange`) : l'app peut rester ouverte après minuit sans fausser les quêtes ni les streaks.
 
 ---
 
@@ -245,9 +269,16 @@ Le reset se déclenche au montage de `useGameState`, dans un `useEffect([], [])`
 - [x] Lien quête journalière → hebdo (auto-incrément)
 - [x] Dévalidation avec régression de niveau
 - [x] Internationalisation FR/EN
-- [ ] Responsive mobile
-- [ ] Historique des actions
-- [ ] Filtres sur les quêtes (incomplètes, par faction...)
+- [x] Responsive mobile
+- [x] Filtres et tri des quêtes, cartes repliables
+- [x] Quêtes mensuelles et annuelles
+- [x] Drag & drop des factions
+- [x] Export/import de profil et de faction
+- [x] Reset des quêtes même si l'onglet reste ouvert
+- [x] Historique des actions
+- [x] Image importée pour l'avatar et les icônes de faction
+- [x] Outillage : config ESLint, tests unitaires de `gameLogic`, CI
+- [x] Modale de confirmation à la place de `confirm()`
 
 ---
 

@@ -11,7 +11,8 @@ export function useGameState(
   gameState: GameState,
   setGameState: (updater: GameState | ((prev: GameState) => GameState)) => void,
   showToast: (message: string, type?: ToastType) => void,
-  onFactionLevelUp?: (factionId: string) => void
+  onFactionLevelUp?: (factionId: string) => void,
+  confirmAction: (message: string) => Promise<boolean> = async () => true
 ) {
 
   // Vérifier et reset les quêtes au chargement, puis périodiquement
@@ -36,7 +37,7 @@ export function useGameState(
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, []);
+  }, [setGameState]);
 
   // Compléter une quête
   const completeQuest = (questId: string) => {
@@ -333,8 +334,8 @@ export function useGameState(
   };
 
   // Supprimer une quête
-  const deleteQuest = (questId: string) => {
-    if (confirm(i18n.t('quest.deleteConfirm'))) {
+  const deleteQuest = async (questId: string) => {
+    if (await confirmAction(i18n.t('quest.deleteConfirm'))) {
       setGameState(prev => ({ ...prev, quests: prev.quests.filter(q => q.id !== questId) }));
     }
   };
@@ -368,8 +369,8 @@ export function useGameState(
   };
 
   // Supprimer une faction (et ses quêtes)
-  const deleteFaction = (factionId: FactionId) => {
-    if (confirm(i18n.t('faction.deleteConfirm'))) {
+  const deleteFaction = async (factionId: FactionId) => {
+    if (await confirmAction(i18n.t('faction.deleteConfirm'))) {
       setGameState(prev => ({
         ...prev,
         factions: prev.factions.filter(f => f.id !== factionId),
@@ -379,8 +380,8 @@ export function useGameState(
   };
 
   // Reset des données du joueur actif
-  const resetAllData = () => {
-    if (confirm(i18n.t('app.confirm.reset'))) {
+  const resetAllData = async () => {
+    if (await confirmAction(i18n.t('app.confirm.reset'))) {
       setGameState(getInitialGameState());
     }
   };
